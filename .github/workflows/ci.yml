@@ -131,13 +131,11 @@ jobs:
 
   # ─────────────────────────────
   # 5. Docker-образ c SemVer-тегом
-  #    (публикуем только из main)
   # ─────────────────────────────
   docker:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
     needs: [quality, build, semver]
-    if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: write
@@ -177,7 +175,7 @@ jobs:
   create-pr:
     name: Auto Create PR to main
     runs-on: ubuntu-latest
-    needs: docker
+    needs: [quality, build, semver]
     if: startsWith(github.ref, 'refs/heads/release/')
     permissions:
       contents: write
