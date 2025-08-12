@@ -12,7 +12,15 @@ export class UserRepository {
       .where(eq(users.telegramId, telegramId))
       .limit(1)
 
-    return result[0] || null
+    if (!result[0]) return null
+
+    const user = result[0]
+    return {
+      ...user,
+      lastName: user.lastName || undefined,
+      username: user.username || undefined,
+      avatarUrl: user.avatarUrl || undefined,
+    }
   }
 
   async findById(id: string): Promise<User | null> {
@@ -22,7 +30,15 @@ export class UserRepository {
       .where(eq(users.id, id))
       .limit(1)
 
-    return result[0] || null
+    if (!result[0]) return null
+
+    const user = result[0]
+    return {
+      ...user,
+      lastName: user.lastName || undefined,
+      username: user.username || undefined,
+      avatarUrl: user.avatarUrl || undefined,
+    }
   }
 
   async create(data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {

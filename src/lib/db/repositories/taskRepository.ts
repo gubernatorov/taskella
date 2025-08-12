@@ -39,8 +39,8 @@ export class TaskRepository {
       conditions.push(like(tasks.title, `%${search}%`))
     }
 
-    // Строим базовый запрос
-    let baseQuery = db
+    // Строим запрос с условным where
+    const baseQuery = db
       .select({
         id: tasks.id,
         key: tasks.key,
@@ -59,11 +59,8 @@ export class TaskRepository {
         projectId: tasks.projectId,
       })
       .from(tasks)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(tasks.updatedAt))
-
-    if (conditions.length > 0) {
-      baseQuery = baseQuery.where(and(...conditions))
-    }
 
     // Пагинация
     const offset = (page - 1) * limit

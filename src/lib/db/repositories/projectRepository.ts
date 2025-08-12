@@ -13,7 +13,8 @@ export class ProjectRepository {
   }) {
     const { search, page = 1, limit = 10, userId } = options
     
-    let query = db
+    // Создаем запрос с условным where
+    const query = db
       .select({
         id: projects.id,
         name: projects.name,
@@ -35,14 +36,8 @@ export class ProjectRepository {
       })
       .from(projects)
       .leftJoin(users, eq(projects.ownerId, users.id))
+      .where(search ? like(projects.name, `%${search}%`) : undefined)
       .orderBy(desc(projects.updatedAt))
-
-    // Поиск
-    if (search) {
-      query = query.where(
-        like(projects.name, `%${search}%`)
-      )
-    }
 
     // Пагинация
     const offset = (page - 1) * limit
@@ -74,15 +69,11 @@ export class ProjectRepository {
     )
 
     // Общее количество для пагинации
-    const totalQuery = db
+    const total = await db
       .select({ count: count() })
       .from(projects)
-
-    if (search) {
-      totalQuery.where(like(projects.name, `%${search}%`))
-    }
-
-    const total = await totalQuery.then(result => result[0]?.count || 0)
+      .where(search ? like(projects.name, `%${search}%`) : undefined)
+      .then(result => result[0]?.count || 0)
 
     return {
       data: projectsWithStats,
