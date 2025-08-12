@@ -27,6 +27,7 @@ const config: Config = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          glass: "hsla(var(--primary-glass))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -58,6 +59,15 @@ const config: Config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      backdropBlur: {
+        xs: "2px",
+        glass: "var(--glass-blur)",
+      },
+      boxShadow: {
+        glass: "var(--glass-shadow)",
+        "glass-sm": "0 4px 16px 0 rgb(31 38 135 / 0.2)",
+        "glass-lg": "0 16px 48px 0 rgb(31 38 135 / 0.4)",
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
@@ -67,10 +77,28 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "glass-shimmer": {
+          "0%": {
+            backgroundPosition: "-100% 0"
+          },
+          "100%": {
+            backgroundPosition: "100% 0"
+          },
+        },
+        "float": {
+          "0%, 100%": {
+            transform: "translateY(0px)"
+          },
+          "50%": {
+            transform: "translateY(-10px)"
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "glass-shimmer": "glass-shimmer 2s ease-in-out infinite",
+        "float": "float 3s ease-in-out infinite",
       },
     },
   },
