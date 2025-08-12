@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
+    branches: [ release/* ]
+  create:
+    branches: [ release/* ]
 
 env:
   NODE_VERSION: '18'
@@ -12,62 +12,79 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # Job для проверки качества кода
+  # ─────────────────────────────
+  # 1. Извлечение SemVer из ветки
+  # ─────────────────────────────
+  semver:
+    name: Extract SemVer
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/release/')
+    outputs:
+      version: ${{ steps.get.outputs.version }}
+      major:   ${{ steps.get.outputs.major }}
+      minor:   ${{ steps.get.outputs.minor }}
+      patch:   ${{ steps.get.outputs.patch }}
+    steps:
+      - name: Parse release/x.y.z
+        id: get
+        run: |
+          BRANCH=${GITHUB_REF#refs/heads/release/}
+          if [[ ! "$BRANCH" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "❌ Branch must be release/x.y.z"
+            exit 1
+          fi
+          echo "version=$BRANCH" >> $GITHUB_OUTPUT
+          echo "major=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          echo "minor=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
+          echo "patch=${BASH_REMATCH[3]}" >> $GITHUB_OUTPUT
+
+  # ─────────────────────────────
+  # 2. Проверка качества кода
+  # ─────────────────────────────
   quality:
     name: Code Quality Checks
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
       - name: Install dependencies
         run: npm ci
-
       - name: Type check
         run: npx tsc --noEmit
-
       - name: Lint code
         run: npm run lint
-
       - name: Security audit
         run: npm audit --audit-level=moderate
-
       - name: Check for vulnerabilities
         run: npm audit --audit-level=high --production
 
-  # Job для сборки приложения
+  # ─────────────────────────────
+  # 3. Сборка приложения
+  # ─────────────────────────────
   build:
     name: Build Application
     runs-on: ubuntu-latest
-    needs: quality
-    
+    needs: [quality]
     outputs:
       build-cache-key: ${{ steps.cache-key.outputs.key }}
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
       - name: Install dependencies
         run: npm ci
-
       - name: Generate cache key for build
         id: cache-key
         run: echo "key=build-${{ github.sha }}-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
-
       - name: Cache build output
         uses: actions/cache@v3
         with:
@@ -78,12 +95,10 @@ jobs:
           restore-keys: |
             build-${{ github.sha }}-
             build-
-
       - name: Build application
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
-
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -93,79 +108,60 @@ jobs:
             public/
           retention-days: 1
 
-  # Job для тестирования (готов к включению когда появятся тесты)
+  # ─────────────────────────────
+  # 4. Заготовка под тесты
+  # ─────────────────────────────
   test:
     name: Run Tests
     runs-on: ubuntu-latest
     needs: build
     if: false  # Включить когда будут тесты
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - run: npm ci
+      - uses: actions/download-artifact@v4
         with:
           name: build-files
+      - run: npm run test         # if/when ready
+      - run: npm run test:api     # if/when ready
+      - run: npm run test:e2e     # if/when ready
 
-      - name: Run unit tests
-        run: npm run test
-        if: false  # Включить когда будет npm run test
-
-      - name: Run API tests
-        run: npm run test:api
-        if: false  # Включить когда будет npm run test:api
-
-      - name: Run e2e tests
-        run: npm run test:e2e
-        if: false  # Включить когда будет npm run test:e2e
-
-  # Job для сборки и публикации Docker образа
+  # ─────────────────────────────
+  # 5. Docker-образ c SemVer-тегом
+  #    (публикуем только из main)
+  # ─────────────────────────────
   docker:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
-    needs: [quality, build]
+    needs: [quality, build, semver]
     if: github.ref == 'refs/heads/main'
-    
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
       - name: Log in to Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
+      - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build and push Docker image
+            type=raw,value=${{ needs.semver.outputs.version }}
+            type=raw,value=latest,enable=true
+      - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -174,20 +170,56 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to:   type=gha,mode=max
 
-  # Job для деплоя (можно настроить под ваше окружение)
+  # ─────────────────────────────
+  # 6. Автоматический PR release → main
+  # ─────────────────────────────
+  create-pr:
+    name: Auto Create PR to main
+    runs-on: ubuntu-latest
+    needs: [quality, build, semver]
+    if: startsWith(github.ref, 'refs/heads/release/')
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH=${GITHUB_REF#refs/heads/}
+          VERSION=${{ needs.semver.outputs.version }}
+          PR_TITLE="Release $VERSION → main"
+          PR_BODY="🚀 Автоматический PR релиза \`$VERSION\`."
+
+          EXISTING=$(gh pr list --base main --head "$BRANCH" --json number --jq '.[0].number')
+          if [ -z "$EXISTING" ]; then
+            gh pr create --base main --head "$BRANCH" --title "$PR_TITLE" --body "$PR_BODY"
+          else
+            echo "PR уже существует: #$EXISTING"
+          fi
+      - name: Tag commit with SemVer
+        if: success()
+        run: |
+          VERSION=${{ needs.semver.outputs.version }}
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "$VERSION"
+  # ─────────────────────────────
+  # 7. Деплой (placeholder)
+  # ─────────────────────────────
   deploy:
     name: Deploy Application
     runs-on: ubuntu-latest
     needs: [docker]
     if: github.ref == 'refs/heads/main'
     environment: production
-    
     steps:
       - name: Deploy to production
         run: |
           echo "🚀 Деплой в production"
-          echo "Docker образ: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          # Здесь добавьте команды для деплоя в ваше production окружение
-          # Например, обновление Kubernetes deployment, или SSH команды на сервер
+          echo "Docker образ: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.semver.outputs.version }}"
