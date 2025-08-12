@@ -3,8 +3,6 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ release/* ]
-  create:
-    branches: [ release/* ]
 
 env:
   NODE_VERSION: '18'
@@ -44,6 +42,7 @@ jobs:
   quality:
     name: Code Quality Checks
     runs-on: ubuntu-latest
+    needs: semver
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -69,7 +68,7 @@ jobs:
   build:
     name: Build Application
     runs-on: ubuntu-latest
-    needs: [quality]
+    needs: quality
     outputs:
       build-cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
@@ -178,7 +177,7 @@ jobs:
   create-pr:
     name: Auto Create PR to main
     runs-on: ubuntu-latest
-    needs: [quality, build, semver]
+    needs: docker
     if: startsWith(github.ref, 'refs/heads/release/')
     permissions:
       contents: write
@@ -193,11 +192,25 @@ jobs:
           BRANCH=${GITHUB_REF#refs/heads/}
           VERSION=${{ needs.semver.outputs.version }}
           PR_TITLE="Release $VERSION → main"
-          PR_BODY="🚀 Автоматический PR релиза \`$VERSION\`."
+
+          # Если тегов нет, LAST_TAG будет пустым
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git log --pretty=format:'- %s (%h)' "$LAST_TAG"..HEAD)
+            PR_BODY=$'🚀 Автоматический PR релиза `'$VERSION'`.\n\n### 🆕 Что изменилось с момента `'$LAST_TAG'`:\n'"$COMMITS"
+          else
+            COMMITS=$(git log --pretty=format:'- %s (%h)' --reverse)
+            PR_BODY=$'🚀 Первый релиз `'$VERSION'`.\n\n### 📌 История коммитов:\n'"$COMMITS"
+          fi
 
           EXISTING=$(gh pr list --base main --head "$BRANCH" --json number --jq '.[0].number')
           if [ -z "$EXISTING" ]; then
-            gh pr create --base main --head "$BRANCH" --title "$PR_TITLE" --body "$PR_BODY"
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "Release $VERSION → main" \
+              --body "$PR_BODY"
           else
             echo "PR уже существует: #$EXISTING"
           fi
@@ -215,7 +228,7 @@ jobs:
   deploy:
     name: Deploy Application
     runs-on: ubuntu-latest
-    needs: [docker]
+    needs: create-pr
     if: github.ref == 'refs/heads/main'
     environment: production
     steps:
