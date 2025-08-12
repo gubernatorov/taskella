@@ -94,7 +94,7 @@ export default function NewProjectTaskPage({ params }: NewProjectTaskPageProps) 
         <div>
           <h1 className="text-3xl font-bold">Новая задача</h1>
           <p className="text-muted-foreground">
-            Создать задачу в проекте "{project.name}"
+            Создать задачу в проекте &ldquo;{project.name}&rdquo;
           </p>
         </div>
       </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/hooks/useAuth'
@@ -53,24 +53,7 @@ export default function LoginPage() {
   const [isTelegramApp, setIsTelegramApp] = useState(false)
   const [isDevMode, setIsDevMode] = useState(false)
 
-  useEffect(() => {
-    // Проверяем, запущено ли приложение в Telegram
-    const webApp = window.Telegram?.WebApp
-    
-    if (webApp?.initData) {
-      setIsTelegramApp(true)
-      webApp.ready()
-      
-      // Автоматический вход для Telegram пользователей
-      handleTelegramLogin()
-    } else {
-      // Режим разработки - приложение открыто в обычном браузере
-      setIsDevMode(true)
-      console.log('Running in development mode (outside Telegram)')
-    }
-  }, [])
-
-  const handleTelegramLogin = async () => {
+  const handleTelegramLogin = useCallback(async () => {
     const webApp = window.Telegram?.WebApp
     
     if (!webApp?.initData) {
@@ -110,7 +93,24 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    // Проверяем, запущено ли приложение в Telegram
+    const webApp = window.Telegram?.WebApp
+    
+    if (webApp?.initData) {
+      setIsTelegramApp(true)
+      webApp.ready()
+      
+      // Автоматический вход для Telegram пользователей
+      handleTelegramLogin()
+    } else {
+      // Режим разработки - приложение открыто в обычном браузере
+      setIsDevMode(true)
+      console.log('Running in development mode (outside Telegram)')
+    }
+  }, [handleTelegramLogin])
 
   const handleDevLogin = async () => {
     setIsLoading(true)
@@ -197,7 +197,7 @@ export default function LoginPage() {
                 <ol className="mt-2 list-decimal list-inside text-sm text-blue-700 space-y-1">
                   <li>Open Telegram</li>
                   <li>Search for your bot</li>
-                  <li>Click "Open App" button</li>
+                  <li>Click &ldquo;Open App&rdquo; button</li>
                 </ol>
               </div>
             </>
