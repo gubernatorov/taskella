@@ -1,75 +1,193 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main ]
 
+env:
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
-  build:
+  # Job для проверки качества кода
+  quality:
+    name: Code Quality Checks
     runs-on: ubuntu-latest
-
+    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Build application
-      run: npm run build
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  # test:
-  #   runs-on: ubuntu-latest
-  #   needs: build
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-  #   steps:
-  #   - uses: actions/checkout@v4
-    
-  #   - name: Setup Node.js
-  #     uses: actions/setup-node@v4
-  #     with:
-  #       node-version: '18'
-  #       cache: 'npm'
-    
-  #   - name: Install dependencies
-  #     run: npm ci
-    
-  #   - name: Run API tests
-  #     run: npm run test:api
+      - name: Install dependencies
+        run: npm ci
 
-  deploy:
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Security audit
+        run: npm audit --audit-level=moderate
+
+      - name: Check for vulnerabilities
+        run: npm audit --audit-level=high --production
+
+  # Job для сборки приложения
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: quality
+    
+    outputs:
+      build-cache-key: ${{ steps.cache-key.outputs.key }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate cache key for build
+        id: cache-key
+        run: echo "key=build-${{ github.sha }}-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache build output
+        uses: actions/cache@v3
+        with:
+          path: |
+            .next/
+            !.next/cache
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            build-${{ github.sha }}-
+            build-
+
+      - name: Build application
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-files
+          path: |
+            .next/
+            public/
+          retention-days: 1
+
+  # Job для тестирования (готов к включению когда появятся тесты)
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
     needs: build
+    if: false  # Включить когда будут тесты
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-files
+
+      - name: Run unit tests
+        run: npm run test
+        if: false  # Включить когда будет npm run test
+
+      - name: Run API tests
+        run: npm run test:api
+        if: false  # Включить когда будет npm run test:api
+
+      - name: Run e2e tests
+        run: npm run test:e2e
+        if: false  # Включить когда будет npm run test:e2e
+
+  # Job для сборки и публикации Docker образа
+  docker:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: [quality, build]
     if: github.ref == 'refs/heads/main'
+    
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Job для деплоя (можно настроить под ваше окружение)
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.ref == 'refs/heads/main'
+    environment: production
     
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Build application
-      run: npm run build
-    
-    - name: Publish to GitHub Packages
-      if: github.ref == 'refs/heads/main'
-      run: |
-        echo "Publishing Docker image to GitHub Packages"
-        docker build -t ghcr.io/${{ github.repository_owner }}}/${{ github.event.repository.name }}:latest .
-        docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-        docker push ghcr.io/${{ github.repository_owner }}}/${{ github.event.repository.name }}:latest
-    # Add deployment steps here as needed
-    # For example, deploying to a server or cloud platform
+    steps:
+      - name: Deploy to production
+        run: |
+          echo "🚀 Деплой в production"
+          echo "Docker образ: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          # Здесь добавьте команды для деплоя в ваше production окружение
+          # Например, обновление Kubernetes deployment, или SSH команды на сервер
