@@ -175,7 +175,7 @@ jobs:
   create-pr:
     name: Auto Create PR to main
     runs-on: ubuntu-latest
-    needs: [quality, build, semver]
+    needs: [quality, build, semver, docker]
     if: startsWith(github.ref, 'refs/heads/release/')
     permissions:
       contents: write
