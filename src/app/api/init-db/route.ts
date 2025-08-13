@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const force = body.force === true
     
-    await initializeDatabase(force)
+    await initializeDatabase({ force })
     return NextResponse.json({
       success: true,
       message: force
