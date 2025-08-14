@@ -33,75 +33,81 @@ export default function TasksPage() {
     : taskList
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Все задачи</h1>
-          <p className="text-muted-foreground">
-            Просмотр и управление всеми вашими задачами
-          </p>
+    <div className="space-y-6 animate-float">
+      <div className="glass glass-hover p-6 rounded-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+              Все задачи
+            </h1>
+            <p className="text-muted-foreground/80 mt-1">
+              Просмотр и управление всеми вашими задачами
+            </p>
+          </div>
+          <Button asChild className="mt-4 sm:mt-0">
+            <Link href="/tasks/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Новая задача
+            </Link>
+          </Button>
         </div>
-        <Button asChild>
-          <Link href="/tasks/new">
-            <Plus className="h-4 w-4 mr-2" />
-            Новая задача
-          </Link>
-        </Button>
-      </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Поиск задач..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-8"
-          />
+        <div className="flex flex-col sm:flex-row gap-4 mt-6">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground/70" />
+            <Input
+              placeholder="Поиск задач..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 glass"
+            />
+          </div>
+          
+          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+            <SelectTrigger className="w-48 glass">
+              <SelectValue placeholder="Статус" />
+            </SelectTrigger>
+            <SelectContent className="glass">
+              <SelectItem value="all">Все статусы</SelectItem>
+              <SelectItem value="todo">К выполнению</SelectItem>
+              <SelectItem value="in_progress">В работе</SelectItem>
+              <SelectItem value="in_review">На проверке</SelectItem>
+              <SelectItem value="done">Выполнено</SelectItem>
+              <SelectItem value="cancelled">Отменено</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as any)}>
+            <SelectTrigger className="w-48 glass">
+              <SelectValue placeholder="Приоритет" />
+            </SelectTrigger>
+            <SelectContent className="glass">
+              <SelectItem value="all">Все приоритеты</SelectItem>
+              <SelectItem value="highest">Критический</SelectItem>
+              <SelectItem value="high">Высокий</SelectItem>
+              <SelectItem value="medium">Средний</SelectItem>
+              <SelectItem value="low">Низкий</SelectItem>
+              <SelectItem value="lowest">Самый низкий</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        
-        <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Статус" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Все статусы</SelectItem>
-            <SelectItem value="todo">К выполнению</SelectItem>
-            <SelectItem value="in_progress">В работе</SelectItem>
-            <SelectItem value="in_review">На проверке</SelectItem>
-            <SelectItem value="done">Выполнено</SelectItem>
-            <SelectItem value="cancelled">Отменено</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as any)}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Приоритет" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Все приоритеты</SelectItem>
-            <SelectItem value="highest">Критический</SelectItem>
-            <SelectItem value="high">Высокий</SelectItem>
-            <SelectItem value="medium">Средний</SelectItem>
-            <SelectItem value="low">Низкий</SelectItem>
-            <SelectItem value="lowest">Самый низкий</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {filteredTasks.length === 0 ? (
-        <EmptyState
-          icon={CheckSquare}
-          title="Нет задач"
-          description={search || statusFilter !== 'all' || priorityFilter !== 'all' 
-            ? "Задачи не найдены по указанным фильтрам"
-            : "Создайте свою первую задачу, чтобы начать работу"
-          }
-          action={(!search && statusFilter === 'all' && priorityFilter === 'all') ? {
-            label: 'Создать задачу',
-            onClick: () => window.location.href = '/tasks/new'
-          } : undefined}
-        />
+        <div className="glass glass-hover p-8 rounded-xl">
+          <EmptyState
+            icon={CheckSquare}
+            title="Нет задач"
+            description={search || statusFilter !== 'all' || priorityFilter !== 'all' 
+              ? "Задачи не найдены по указанным фильтрам"
+              : "Создайте свою первую задачу, чтобы начать работу"
+            }
+            action={(!search && statusFilter === 'all' && priorityFilter === 'all') ? {
+              label: 'Создать задачу',
+              onClick: () => window.location.href = '/tasks/new'
+            } : undefined}
+          />
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTasks.map((task) => (

@@ -14,20 +14,24 @@ export default function DashboardPage() {
   const { data: tasks } = useTasks({ limit: 5, status: 'in_progress' })
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Дашборд</h1>
-        <p className="text-muted-foreground">
+    <div className="space-y-6 animate-float">
+      <div className="glass glass-hover p-6 rounded-xl">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+          Дашборд
+        </h1>
+        <p className="text-muted-foreground/80 mt-1">
           Обзор ваших проектов и задач
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+        <Card className="glass glass-hover">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Недавние проекты</CardTitle>
-              <CardDescription>Ваши последние проекты</CardDescription>
+              <CardTitle className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                Недавние проекты
+              </CardTitle>
+              <CardDescription className="text-muted-foreground/80">Ваши последние проекты</CardDescription>
             </div>
             <Button asChild size="sm">
               <Link href="/projects/new">
@@ -46,11 +50,13 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glass glass-hover">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>В работе</CardTitle>
-              <CardDescription>Ваши активные задачи</CardDescription>
+              <CardTitle className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                В работе
+              </CardTitle>
+              <CardDescription className="text-muted-foreground/80">Ваши активные задачи</CardDescription>
             </div>
             <Button asChild size="sm">
               <Link href="/tasks/new">

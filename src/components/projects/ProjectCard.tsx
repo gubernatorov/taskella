@@ -21,11 +21,13 @@ export function ProjectCard({ project, compact = false }: ProjectCardProps) {
 
   if (compact) {
     return (
-      <Card className="hover:shadow-md transition-shadow cursor-pointer">
+      <Card className="glass glass-hover cursor-pointer animate-float-slow">
         <Link href={`/projects/${project.id}`}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm">{project.name}</CardTitle>
+              <CardTitle className="text-sm bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                {project.name}
+              </CardTitle>
               <Badge variant={statusVariant[project.status]} className="text-xs">
                 {project.key}
               </Badge>
@@ -34,11 +36,11 @@ export function ProjectCard({ project, compact = false }: ProjectCardProps) {
           <CardContent className="pt-0">
             <div className="flex items-center text-xs text-muted-foreground space-x-4">
               <div className="flex items-center">
-                <CheckSquare className="h-3 w-3 mr-1" />
+                <CheckSquare className="h-3 w-3 mr-1 text-primary/70" />
                 {project.tasksCount}
               </div>
               <div className="flex items-center">
-                <Users className="h-3 w-3 mr-1" />
+                <Users className="h-3 w-3 mr-1 text-primary/70" />
                 {project.membersCount}
               </div>
             </div>
@@ -49,12 +51,14 @@ export function ProjectCard({ project, compact = false }: ProjectCardProps) {
   }
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="glass glass-hover animate-float-slow">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-xl">{project.name}</CardTitle>
-            <CardDescription>{project.description}</CardDescription>
+            <CardTitle className="text-xl bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+              {project.name}
+            </CardTitle>
+            <CardDescription className="text-muted-foreground/80">{project.description}</CardDescription>
           </div>
           <Badge variant={statusVariant[project.status]}>
             {project.key}
@@ -65,11 +69,11 @@ export function ProjectCard({ project, compact = false }: ProjectCardProps) {
         <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
           <div className="flex items-center space-x-4">
             <div className="flex items-center">
-              <CheckSquare className="h-4 w-4 mr-1" />
+              <CheckSquare className="h-4 w-4 mr-1 text-primary/70" />
               {project.tasksCount} задач
             </div>
             <div className="flex items-center">
-              <Users className="h-4 w-4 mr-1" />
+              <Users className="h-4 w-4 mr-1 text-primary/70" />
               {project.membersCount} участников
             </div>
           </div>

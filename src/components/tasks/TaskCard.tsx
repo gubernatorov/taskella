@@ -17,14 +17,16 @@ interface TaskCardProps {
 export function TaskCard({ task, compact = false }: TaskCardProps) {
   if (compact) {
     return (
-      <Card className="hover:shadow-md transition-shadow cursor-pointer">
+      <Card className="glass glass-hover cursor-pointer animate-float-delayed">
         <Link href={`/tasks/${task.id}`}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm line-clamp-1">{task.title}</CardTitle>
+              <CardTitle className="text-sm line-clamp-1 bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                {task.title}
+              </CardTitle>
               <StatusBadge status={task.status} />
             </div>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-xs text-muted-foreground/80">
               {task.key} • {task.project.name}
             </CardDescription>
           </CardHeader>
@@ -32,12 +34,14 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               {task.assignee && (
                 <div className="flex items-center">
-                  <Avatar className="h-4 w-4 mr-1">
-                    <AvatarImage src={task.assignee.avatarUrl} />
-                    <AvatarFallback className="text-xs">
-                      {task.assignee.firstName[0]}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="glass glass-hover rounded-full p-0.5 mr-1">
+                    <Avatar className="h-4 w-4">
+                      <AvatarImage src={task.assignee.avatarUrl} />
+                      <AvatarFallback className="text-xs bg-gradient-to-br from-primary to-purple-600 text-white">
+                        {task.assignee.firstName[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
                   {task.assignee.firstName}
                 </div>
               )}
@@ -50,19 +54,21 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
   }
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="glass glass-hover animate-float-delayed">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-2 flex-1">
             <div className="flex items-center space-x-2">
-              <CardTitle className="text-lg">{task.title}</CardTitle>
+              <CardTitle className="text-lg bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                {task.title}
+              </CardTitle>
               <StatusBadge status={task.status} />
             </div>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground/80">
               {task.key} • {task.project.name}
             </CardDescription>
             {task.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
+              <p className="text-sm text-muted-foreground/80 line-clamp-2">
                 {task.description}
               </p>
             )}
@@ -75,25 +81,27 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
           <div className="flex items-center space-x-4">
             {task.assignee && (
               <div className="flex items-center">
-                <User className="h-4 w-4 mr-1" />
-                <Avatar className="h-5 w-5 mr-1">
-                  <AvatarImage src={task.assignee.avatarUrl} />
-                  <AvatarFallback className="text-xs">
-                    {task.assignee.firstName[0]}
-                  </AvatarFallback>
-                </Avatar>
+                <User className="h-4 w-4 mr-1 text-primary/70" />
+                <div className="glass glass-hover rounded-full p-0.5 mr-1">
+                  <Avatar className="h-5 w-5">
+                    <AvatarImage src={task.assignee.avatarUrl} />
+                    <AvatarFallback className="text-xs bg-gradient-to-br from-primary to-purple-600 text-white">
+                      {task.assignee.firstName[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
                 {task.assignee.firstName}
               </div>
             )}
             {task.estimatedHours && (
               <div className="flex items-center">
-                <Clock className="h-4 w-4 mr-1" />
+                <Clock className="h-4 w-4 mr-1 text-primary/70" />
                 {task.estimatedHours}ч
               </div>
             )}
           </div>
           <div className="flex items-center">
-            <Calendar className="h-4 w-4 mr-1" />
+            <Calendar className="h-4 w-4 mr-1 text-primary/70" />
             {task.dueDate
               ? format(new Date(task.dueDate), 'dd.MM.yyyy')
               : formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true, locale: ru })}
