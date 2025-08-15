@@ -35,6 +35,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Various UI styling inconsistencies
 - Task editing flow issues
 
+## [0.1.4] - 2025-08-15
+
+### Added
+- New features for task management and project organization
+
+### Changed
+- Improved performance of UI components
+- Enhanced user experience with new design elements
+
+### Fixed
+- Resolved minor bugs in task editing and commenting features
+- Fixed UI rendering issues on different browser versions
+
+
 ## [0.1.2] - 2025-08-12
 
 ### Added
