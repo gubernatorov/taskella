@@ -23,6 +23,7 @@ export function TaskHeader({ task, compact = false }: TaskHeaderProps) {
               {task.title}
             </CardTitle>
             <StatusBadge status={task.status} />
+            <PriorityBadge priority={task.priority} />
           </div>
           <CardDescription className="text-muted-foreground/80">
             {task.key} • {task.project.name}

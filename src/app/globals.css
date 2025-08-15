@@ -89,52 +89,12 @@
   }
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(135deg,
-      hsl(var(--background)) 0%,
-      hsl(263 70% 95%) 30%,
-      hsl(220 70% 95%) 60%,
-      hsl(280 70% 95%) 100%);
-    background-attachment: fixed;
+    background: hsl(var(--background));
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
   }
   
-  body::before {
-    content: '';
-    position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(
-      ellipse at center,
-      hsla(263, 70%, 60%, 0.1) 0%,
-      hsla(220, 70%, 60%, 0.05) 30%,
-      transparent 70%
-    );
-    animation: float 20s ease-in-out infinite;
-    pointer-events: none;
-    z-index: -1;
-  }
-
-  body::after {
-    content: '';
-    position: fixed;
-    top: -30%;
-    right: -30%;
-    width: 150%;
-    height: 150%;
-    background: radial-gradient(
-      ellipse at center,
-      hsla(280, 70%, 60%, 0.08) 0%,
-      hsla(240, 70%, 60%, 0.04) 40%,
-      transparent 70%
-    );
-    animation: float 25s ease-in-out infinite reverse;
-    pointer-events: none;
-    z-index: -1;
-  }
 }
 
 /* Glass morphism утилиты */
@@ -418,4 +378,16 @@ input, textarea, [contenteditable] {
 
 .dropdown-exit {
   animation: dropdown-out 0.15s ease-in;
+}
+
+/* Предотвращение нежелательного скроллинга страницы при работе с чатом */
+.chat-container {
+  scroll-behavior: smooth;
+  overflow-y: auto;
+  max-height: 250px;
+}
+
+/* Блокируем передачу скроллинга от чата к родительским элементам */
+.chat-container * {
+  scroll-margin: 0;
 }

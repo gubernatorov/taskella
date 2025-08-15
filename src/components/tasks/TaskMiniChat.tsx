@@ -25,7 +25,10 @@ export function TaskMiniChat({ taskId }: TaskMiniChatProps) {
   const refreshIntervalRef = useRef<NodeJS.Timeout>()
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const chatContainer = messagesEndRef.current?.closest('.chat-container')
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight
+    }
   }
 
   const loadComments = async (silent = false) => {
@@ -136,7 +139,7 @@ export function TaskMiniChat({ taskId }: TaskMiniChatProps) {
 
       {/* Область сообщений */}
       <CardContent className="flex-1 flex flex-col p-3 pt-0 space-y-3">
-        <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
+        <div className="flex-1 overflow-y-auto space-y-2 min-h-0 max-h-[250px] scroll-smooth chat-container">
           {comments.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm">
               <MessageCircle className="h-8 w-8 mb-2 opacity-50" />

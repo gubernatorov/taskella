@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/tasks/StatusBadge'
+import { PriorityBadge } from '@/components/tasks/PriorityBadge'
 import { Task } from '@/types/task'
 import { Calendar, Clock, User, MessageCircle, Paperclip } from 'lucide-react'
 import Link from 'next/link'
@@ -16,25 +17,30 @@ interface TaskCardProps {
 export function TaskCard({ task, compact = false }: TaskCardProps) {
   if (compact) {
     return (
-      <Card className="hover:scale-[1.02] transition-all duration-200 cursor-pointer">
+      <Card className="hover:scale-[1.02] transition-all duration-200 cursor-pointer border border-border/50 shadow-sm">
         <Link href={`/tasks/${task.id}`}>
-          <CardHeader>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-sm">{task.title}</CardTitle>
-                  <StatusBadge status={task.status} />
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <CardTitle className="text-sm font-semibold truncate">
+                    {task.title}
+                  </CardTitle>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <StatusBadge status={task.status} />
+                    <PriorityBadge priority={task.priority} />
+                  </div>
                 </div>
-                <CardDescription>
+                <CardDescription className="text-xs truncate">
                   {task.key} • {task.project.name}
                 </CardDescription>
               </div>
               
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0">
                 {task.assignee && (
                   <div className="flex items-center gap-1">
-                    <User className="h-3 w-3" />
-                    <Avatar className="h-4 w-4">
+                    <User className="h-3 w-3 flex-shrink-0" />
+                    <Avatar className="h-5 w-5">
                       <AvatarImage src={task.assignee.avatarUrl} />
                       <AvatarFallback className="text-xs bg-gradient-to-br from-primary to-purple-600 text-white">
                         {task.assignee.firstName[0]}
@@ -44,7 +50,7 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                 )}
                 {task.estimatedHours && (
                   <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
+                    <Clock className="h-3 w-3 flex-shrink-0" />
                     <span>{task.estimatedHours}ч</span>
                   </div>
                 )}
@@ -55,18 +61,23 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
       </Card>
     )
   }
-
+  
   return (
-    <Card className="hover:scale-[1.01] transition-all duration-200 cursor-pointer">
-      <Link href={`/tasks/${task.id}`}>
-        <CardHeader>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 space-y-2">
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-lg">{task.title}</CardTitle>
-                <StatusBadge status={task.status} />
+    <Card className="hover:scale-[1.01] transition-all duration-200 cursor-pointer border border-border/50 shadow-sm overflow-hidden flex flex-col h-full">
+      <Link href={`/tasks/${task.id}`} className="flex flex-col h-full">
+        <CardHeader className="pb-4 flex-shrink-0">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <CardTitle className="text-lg font-semibold truncate">
+                  {task.title}
+                </CardTitle>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <StatusBadge status={task.status} />
+                  <PriorityBadge priority={task.priority} />
+                </div>
               </div>
-              <CardDescription>
+              <CardDescription className="text-sm truncate">
                 {task.key} • {task.project.name}
               </CardDescription>
               {task.description && (
@@ -76,22 +87,26 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
               )}
             </div>
             
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-col gap-2 text-sm text-muted-foreground flex-shrink-0">
               {task.assignee && (
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <Avatar className="h-5 w-5">
-                    <AvatarImage src={task.assignee.avatarUrl} />
-                    <AvatarFallback className="text-xs bg-gradient-to-br from-primary to-purple-600 text-white">
-                      {task.assignee.firstName[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium">{task.assignee.firstName}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <User className="h-4 w-4 flex-shrink-0" />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Avatar className="h-6 w-6 flex-shrink-0">
+                      <AvatarImage src={task.assignee.avatarUrl} />
+                      <AvatarFallback className="text-xs bg-gradient-to-br from-primary to-purple-600 text-white">
+                        {task.assignee.firstName[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium text-sm truncate">
+                      {task.assignee.firstName}
+                    </span>
+                  </div>
                 </div>
               )}
               {task.estimatedHours && (
                 <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
+                  <Clock className="h-4 w-4 flex-shrink-0" />
                   <span>{task.estimatedHours}ч</span>
                 </div>
               )}
@@ -99,11 +114,11 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
           </div>
         </CardHeader>
         
-        <CardContent>
+        <CardContent className="pt-0 flex flex-col flex-grow">
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>
+            <div className="flex items-center gap-2 min-w-0">
+              <Calendar className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">
                 {task.dueDate
                   ? format(new Date(task.dueDate), 'dd.MM.yyyy')
                   : formatDistanceToNow(new Date(task.updatedAt), {
@@ -112,7 +127,7 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                     })}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-3 text-xs flex-shrink-0">
               <div className="flex items-center gap-1">
                 <MessageCircle className="h-3 w-3" />
                 <span>0 комм.</span>
@@ -124,9 +139,11 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
             </div>
           </div>
           
-          <Button asChild className="w-full">
-            <Link href={`/tasks/${task.id}`}>Открыть задачу</Link>
-          </Button>
+          <div className="mt-auto pt-2">
+            <Button asChild className="w-full" size="sm">
+              <Link href={`/tasks/${task.id}`}>Открыть задачу</Link>
+            </Button>
+          </div>
         </CardContent>
       </Link>
     </Card>

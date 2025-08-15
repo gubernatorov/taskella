@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { StatusBadge } from '@/components/tasks/StatusBadge'
 import { PriorityBadge } from '@/components/tasks/PriorityBadge'
 import { TaskComments } from '@/components/tasks/TaskComments'
@@ -18,7 +17,7 @@ import { TaskAttachments } from '@/components/tasks/TaskAttachments'
 import { useTask, useUpdateTask } from '@/lib/hooks/useTasks'
 import { Loading } from '@/components/common/Loading'
 import { EmptyState } from '@/components/common/EmptyState'
-import { ArrowLeft, Edit, Clock, Calendar, User, MessageCircle, Send, Paperclip } from 'lucide-react'
+import { ArrowLeft, Edit, Clock, Calendar, User, MessageCircle, Send, Paperclip, Save, X } from 'lucide-react'
 import Link from 'next/link'
 import { format, formatDistanceToNow } from 'date-fns'
 import { ru } from 'date-fns/locale'
@@ -29,7 +28,7 @@ interface TaskPageProps {
 }
 
 export default function TaskPage({ params }: TaskPageProps) {
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
   const [editFormData, setEditFormData] = useState<UpdateTaskRequest>({})
   const { data: task, isLoading } = useTask(params.id)
   const updateTask = useUpdateTask()
@@ -66,7 +65,7 @@ export default function TaskPage({ params }: TaskPageProps) {
         priority: task.priority,
         estimatedHours: task.estimatedHours,
       })
-      setIsEditDialogOpen(true)
+      setIsEditing(true)
     }
   }
 
@@ -76,10 +75,15 @@ export default function TaskPage({ params }: TaskPageProps) {
         id: task!.id,
         data: editFormData
       })
-      setIsEditDialogOpen(false)
+      setIsEditing(false)
     } catch (error) {
       console.error('Failed to update task:', error)
     }
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditFormData({})
   }
 
   return (
@@ -91,64 +95,80 @@ export default function TaskPage({ params }: TaskPageProps) {
           </Link>
         </Button>
         <div className="flex-1">
-          <div className="flex items-center space-x-3">
-            <h1 className="text-3xl font-bold">{task.title}</h1>
-            <StatusBadge status={task.status} />
-            <PriorityBadge priority={task.priority} />
-          </div>
-          <p className="text-muted-foreground mt-1">
-            {task.key} • {task.project.name}
-          </p>
+          {isEditing ? (
+            <div className="space-y-2">
+              <Input
+                value={editFormData.title || ''}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                className="text-3xl font-bold border-0 p-0 h-auto"
+                placeholder="Название задачи"
+              />
+              <p className="text-muted-foreground">
+                {task.key} • {task.project.name}
+              </p>
+            </div>
+          ) : (
+            <div>
+              <div className="flex items-center space-x-3">
+                <h1 className="text-3xl font-bold">{task.title}</h1>
+                <StatusBadge status={task.status} />
+                <PriorityBadge priority={task.priority} />
+              </div>
+              <p className="text-muted-foreground mt-1">
+                {task.key} • {task.project.name}
+              </p>
+            </div>
+          )}
         </div>
-        <Button variant="outline" size="icon" onClick={handleEditTask}>
-          <Edit className="h-4 w-4" />
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Описание</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Описание</CardTitle>
+                {!isEditing && (
+                  <Button variant="outline" size="sm" onClick={handleEditTask}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Редактировать
+                  </Button>
+                )}
+              </div>
             </CardHeader>
-            <CardContent>
-              {task.description ? (
-                <div className="prose prose-sm max-w-none">
-                  <p className="whitespace-pre-wrap">{task.description}</p>
+            <CardContent className="min-h-[200px]">
+              {isEditing ? (
+                <div className="space-y-4">
+                  <Textarea
+                    value={editFormData.description || ''}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                    className="min-h-[150px]"
+                    placeholder="Описание задачи"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={handleCancelEdit}>
+                      <X className="h-4 w-4 mr-2" />
+                      Отмена
+                    </Button>
+                    <Button onClick={handleSaveEdit} disabled={updateTask.isPending}>
+                      <Save className="h-4 w-4 mr-2" />
+                      {updateTask.isPending ? 'Сохранение...' : 'Сохранить'}
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <p className="text-muted-foreground italic">
-                  Описание не добавлено
-                </p>
+                <>
+                  {task.description ? (
+                    <div className="prose prose-sm max-w-none">
+                      <p className="whitespace-pre-wrap">{task.description}</p>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground italic">
+                      Описание не добавлено
+                    </p>
+                  )}
+                </>
               )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Действия</CardTitle>
-              <CardDescription>
-                Изменить статус задачи
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {(['todo', 'in_progress', 'in_review', 'done', 'cancelled'] as const).map((status) => (
-                  <Button
-                    key={status}
-                    variant={task.status === status ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleStatusChange(status)}
-                    disabled={updateTask.isPending}
-                  >
-                    {status === 'todo' && 'К выполнению'}
-                    {status === 'in_progress' && 'В работе'}
-                    {status === 'in_review' && 'На проверке'}
-                    {status === 'done' && 'Выполнено'}
-                    {status === 'cancelled' && 'Отменено'}
-                  </Button>
-                ))}
-              </div>
             </CardContent>
           </Card>
 
@@ -165,6 +185,100 @@ export default function TaskPage({ params }: TaskPageProps) {
               <CardTitle>Детали</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium mb-2">Статус</h4>
+                {isEditing ? (
+                  <Select
+                    value={editFormData.status}
+                    onValueChange={(value: TaskStatus) => setEditFormData(prev => ({ ...prev, status: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите статус" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todo">К выполнению</SelectItem>
+                      <SelectItem value="in_progress">В работе</SelectItem>
+                      <SelectItem value="in_review">На проверке</SelectItem>
+                      <SelectItem value="done">Выполнено</SelectItem>
+                      <SelectItem value="cancelled">Отменено</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Select
+                    value={task.status}
+                    onValueChange={(value: string) => handleStatusChange(value)}
+                    disabled={updateTask.isPending}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todo">К выполнению</SelectItem>
+                      <SelectItem value="in_progress">В работе</SelectItem>
+                      <SelectItem value="in_review">На проверке</SelectItem>
+                      <SelectItem value="done">Выполнено</SelectItem>
+                      <SelectItem value="cancelled">Отменено</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+
+              {isEditing ? (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Приоритет</h4>
+                  <Select
+                    value={editFormData.priority}
+                    onValueChange={(value: TaskPriority) => setEditFormData(prev => ({ ...prev, priority: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите приоритет" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="lowest">Очень низкий</SelectItem>
+                      <SelectItem value="low">Низкий</SelectItem>
+                      <SelectItem value="medium">Средний</SelectItem>
+                      <SelectItem value="high">Высокий</SelectItem>
+                      <SelectItem value="highest">Очень высокий</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Приоритет</h4>
+                  <PriorityBadge priority={task.priority} />
+                </div>
+              )}
+
+              {isEditing ? (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Оценочное время (часы)</h4>
+                  <Input
+                    id="estimatedHours"
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={editFormData.estimatedHours || ''}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      if (value === '' || /^\d+$/.test(value)) {
+                        setEditFormData(prev => ({ 
+                          ...prev, 
+                          estimatedHours: value ? parseInt(value, 10) : undefined 
+                        }))
+                      }
+                    }}
+                    placeholder="Оценочное время"
+                  />
+                </div>
+              ) : task.estimatedHours ? (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Оценочное время</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {task.estimatedHours} ч.
+                  </p>
+                </div>
+              ) : null}
+
               <div>
                 <h4 className="text-sm font-medium mb-2">Автор</h4>
                 <div className="flex items-center space-x-2">
@@ -190,21 +304,13 @@ export default function TaskPage({ params }: TaskPageProps) {
               <div>
                 <h4 className="text-sm font-medium mb-2">Создана</h4>
                 <p className="text-sm text-muted-foreground">
-                  {formatDistanceToNow(new Date(task.createdAt), { 
-                    addSuffix: true, 
-                    locale: ru 
+                  {formatDistanceToNow(new Date(task.createdAt), {
+                    addSuffix: true,
+                    locale: ru
                   })}
                 </p>
               </div>
 
-              {task.estimatedHours && (
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Оценочное время</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {task.estimatedHours} ч.
-                  </p>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -213,91 +319,6 @@ export default function TaskPage({ params }: TaskPageProps) {
         </div>
       </div>
 
-      {/* Диалог редактирования задачи */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Редактировать задачу</DialogTitle>
-            <DialogDescription>
-              Внесите изменения в задачу и нажмите &quot;Сохранить&quot;
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">Название</Label>
-              <Input
-                id="title"
-                value={editFormData.title || ''}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Описание</Label>
-              <Textarea
-                id="description"
-                value={editFormData.description || ''}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="status">Статус</Label>
-                <Select
-                  value={editFormData.status}
-                  onValueChange={(value: TaskStatus) => setEditFormData(prev => ({ ...prev, status: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Выберите статус" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todo">К выполнению</SelectItem>
-                    <SelectItem value="in_progress">В работе</SelectItem>
-                    <SelectItem value="in_review">На проверке</SelectItem>
-                    <SelectItem value="done">Выполнено</SelectItem>
-                    <SelectItem value="cancelled">Отменено</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="priority">Приоритет</Label>
-                <Select
-                  value={editFormData.priority}
-                  onValueChange={(value: TaskPriority) => setEditFormData(prev => ({ ...prev, priority: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Выберите приоритет" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="lowest">Очень низкий</SelectItem>
-                    <SelectItem value="low">Низкий</SelectItem>
-                    <SelectItem value="medium">Средний</SelectItem>
-                    <SelectItem value="high">Высокий</SelectItem>
-                    <SelectItem value="highest">Очень высокий</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="estimatedHours">Оценочное время (часы)</Label>
-              <Input
-                id="estimatedHours"
-                type="number"
-                value={editFormData.estimatedHours || ''}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, estimatedHours: parseFloat(e.target.value) || undefined }))}
-              />
-            </div>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Отмена
-            </Button>
-            <Button onClick={handleSaveEdit} disabled={updateTask.isPending}>
-              {updateTask.isPending ? 'Сохранение...' : 'Сохранить'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

@@ -116,7 +116,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
   }
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -159,7 +159,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
       </CardHeader>
       
       {isExpanded && (
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 max-h-[400px] overflow-y-auto">
           {/* Область загрузки файлов */}
           <div
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
