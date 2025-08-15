@@ -11,10 +11,12 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { StatusBadge } from '@/components/tasks/StatusBadge'
 import { PriorityBadge } from '@/components/tasks/PriorityBadge'
+import { TypeBadge } from '@/components/tasks/TypeBadge'
 import { TaskComments } from '@/components/tasks/TaskComments'
 import { TaskMiniChat } from '@/components/tasks/TaskMiniChat'
 import { TaskAttachments } from '@/components/tasks/TaskAttachments'
 import { useTask, useUpdateTask } from '@/lib/hooks/useTasks'
+import { useUsers } from '@/lib/hooks/useUsers'
 import { Loading } from '@/components/common/Loading'
 import { EmptyState } from '@/components/common/EmptyState'
 import { ArrowLeft, Edit, Clock, Calendar, User, MessageCircle, Send, Paperclip, Save, X } from 'lucide-react'
@@ -35,6 +37,7 @@ export default function TaskPage({ params }: TaskPageProps) {
   const [editTitle, setEditTitle] = useState('')
   const { data: task, isLoading } = useTask(params.id)
   const updateTask = useUpdateTask()
+  const { data: users } = useUsers()
 
   if (isLoading) return <Loading />
   
@@ -91,6 +94,7 @@ export default function TaskPage({ params }: TaskPageProps) {
         status: task.status,
         priority: task.priority,
         estimatedHours: task.estimatedHours,
+        assigneeId: task.assignee?.id,
       })
       setIsEditingDetails(true)
     }
@@ -140,6 +144,7 @@ export default function TaskPage({ params }: TaskPageProps) {
                 <h1 className="text-3xl font-bold">{task.title}</h1>
                 <StatusBadge status={task.status} />
                 <PriorityBadge priority={task.priority} />
+                <TypeBadge type={task.type} />
               </div>
               <p className="text-muted-foreground mt-1">
                 {task.key} • {task.project.name}
@@ -224,7 +229,7 @@ export default function TaskPage({ params }: TaskPageProps) {
                 <h4 className="text-sm font-medium mb-2">Статус</h4>
                 {isEditingDetails ? (
                   <Select
-                    value={editDetails.status}
+                    value={editDetails.status || ''}
                     onValueChange={(value: TaskStatus) => setEditDetails(prev => ({ ...prev, status: value }))}
                   >
                     <SelectTrigger>
@@ -260,24 +265,50 @@ export default function TaskPage({ params }: TaskPageProps) {
 
               {isEditingDetails ? (
                 <div>
-                  <h4 className="text-sm font-medium mb-2">Приоритет</h4>
+                  <h4 className="text-sm font-medium mb-2">Тип</h4>
                   <Select
-                    value={editDetails.priority}
-                    onValueChange={(value: TaskPriority) => setEditDetails(prev => ({ ...prev, priority: value }))}
+                    value={task.type || ''} // Type is not editable in this view, so we use the original task value
+                    disabled={true} // Disable editing for now
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Выберите приоритет" />
+                      <SelectValue placeholder="Выберите тип" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="lowest">Очень низкий</SelectItem>
-                      <SelectItem value="low">Низкий</SelectItem>
-                      <SelectItem value="medium">Средний</SelectItem>
-                      <SelectItem value="high">Высокий</SelectItem>
-                      <SelectItem value="highest">Очень высокий</SelectItem>
+                      <SelectItem value="task">Задача</SelectItem>
+                      <SelectItem value="bug">Ошибка</SelectItem>
+                      <SelectItem value="feature">Новая функция</SelectItem>
+                      <SelectItem value="epic">Эпик</SelectItem>
+                      <SelectItem value="story">История</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               ) : (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Тип</h4>
+                  <TypeBadge type={task.type} />
+                </div>
+              )}
+
+                {isEditingDetails ? (
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Приоритет</h4>
+                    <Select
+                      value={editDetails.priority || ''}
+                      onValueChange={(value: TaskPriority) => setEditDetails(prev => ({ ...prev, priority: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите приоритет" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="lowest">Очень низкий</SelectItem>
+                        <SelectItem value="low">Низкий</SelectItem>
+                        <SelectItem value="medium">Средний</SelectItem>
+                        <SelectItem value="high">Высокий</SelectItem>
+                        <SelectItem value="highest">Очень высокий</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
                 <div>
                   <h4 className="text-sm font-medium mb-2">Приоритет</h4>
                   <PriorityBadge priority={task.priority} />
@@ -323,6 +354,42 @@ export default function TaskPage({ params }: TaskPageProps) {
                   </p>
                 </div>
               ) : null}
+
+              <div>
+                <h4 className="text-sm font-medium mb-2">Исполнитель</h4>
+                {isEditingDetails ? (
+                  <Select
+                    value={editDetails.assigneeId || 'unassigned'}
+                    onValueChange={(value) => setEditDetails(prev => ({ ...prev, assigneeId: value === 'unassigned' ? undefined : value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите исполнителя" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Не назначен</SelectItem>
+                      {users?.map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : task.assignee ? (
+                  <div className="flex items-center space-x-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={task.assignee.avatarUrl} />
+                      <AvatarFallback>
+                        {task.assignee.firstName[0]}{task.assignee.lastName?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm">
+                      {task.assignee.firstName} {task.assignee.lastName}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Не назначен</p>
+                )}
+              </div>
 
               <div>
                 <h4 className="text-sm font-medium mb-2">Автор</h4>

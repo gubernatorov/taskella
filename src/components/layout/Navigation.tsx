@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils/cn'
 import { Button } from '@/components/ui/button'
-import { FolderOpen, CheckSquare, Home, Settings } from 'lucide-react'
+import { FolderOpen, CheckSquare, Home, Settings, Kanban } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -21,6 +21,11 @@ const navigation = [
     name: 'Задачи',
     href: '/tasks',
     icon: CheckSquare,
+  },
+  {
+    name: 'Доски',
+    href: '/boards',
+    icon: Kanban,
   },
 ]
 

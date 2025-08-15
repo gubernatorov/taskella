@@ -136,13 +136,13 @@
   }
 
   .glass-hover {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s ease-in-out;
   }
   
   .glass-hover:hover {
-    background: hsla(var(--card) / 0.25);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px 0 rgb(31 38 135 / 0.4);
+    background: hsla(var(--card) / 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px 0 rgb(31 38 135 / 0.25);
   }
 
   .frosted {
@@ -185,12 +185,12 @@
     height: 200%;
     background: linear-gradient(
       45deg,
-      transparent 30%,
-      hsla(var(--primary) / 0.1) 50%,
-      transparent 70%
+      transparent 40%,
+      hsla(var(--primary) / 0.05) 50%,
+      transparent 60%
     );
     transform: translateX(-100%);
-    transition: transform 0.6s ease;
+    transition: transform 0.8s ease-in-out;
   }
 
   .glass-glow:hover::after {
@@ -234,10 +234,10 @@
     background: linear-gradient(
       90deg,
       transparent,
-      hsla(255 255 255 / 0.2),
+      hsla(255 255 255 / 0.1),
       transparent
     );
-    animation: shimmer 3s ease-in-out infinite;
+    animation: shimmer 4s ease-in-out infinite;
   }
 }
 
@@ -246,7 +246,7 @@
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
   }
 }
 
@@ -256,8 +256,8 @@
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 12px 48px 0 rgb(31 38 135 / 0.3);
-    transform: scale(1.01);
+    box-shadow: 0 8px 32px 0 rgb(31 38 135 / 0.2);
+    transform: scale(1.005);
   }
 }
 
@@ -266,7 +266,7 @@
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
 }
 
@@ -338,10 +338,10 @@ input, textarea, [contenteditable] {
     background: linear-gradient(
       90deg,
       transparent,
-      hsla(var(--primary) / 0.1),
+      hsla(var(--primary) / 0.05),
       transparent
     );
-    transition: left 0.5s ease;
+    transition: left 0.6s ease-in-out;
   }
 
   .glass-dropdown-item:hover::before {
@@ -390,4 +390,42 @@ input, textarea, [contenteditable] {
 /* Блокируем передачу скроллинга от чата к родительским элементам */
 .chat-container * {
   scroll-margin: 0;
+}
+
+/* Line clamp utilities */
+@layer utilities {
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .line-clamp-4 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+  }
+
+  .line-clamp-none {
+    overflow: visible;
+    display: block;
+    -webkit-box-orient: horizontal;
+    -webkit-line-clamp: none;
+  }
 }
