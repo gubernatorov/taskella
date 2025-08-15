@@ -105,14 +105,18 @@ export default function LoginPage() {
     } catch (err) {
       console.error('Login error:', err)
       const errorMessage = err instanceof Error ? err.message : 'An error occurred during login'
-      setError(errorMessage)
-      setAuthError(errorMessage)
       
-      // Если ошибка связана с отсутствием пользователя в БД (после очистки),
-      // не пытаемся автоматически войти снова
-      if (errorMessage.includes('Пользователь не найден') || (err as any)?.code === 'USER_NOT_FOUND') {
+      // Улучшенная обработка ошибок для продакшн-режима
+      if ((err as any)?.code === 'NETWORK_ERROR' || (err as any)?.isNetworkError) {
+        setError('Сервер недоступен. Пожалуйста, попробуйте позже.')
+      } else if (errorMessage.includes('Пользователь не найден') || (err as any)?.code === 'USER_NOT_FOUND') {
+        setError('База данных не инициализирована. Пожалуйста, подождите несколько минут и попробуйте снова.')
         setHasAttemptedAuth(true)
+      } else {
+        setError(errorMessage)
       }
+      
+      setAuthError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -173,7 +177,15 @@ export default function LoginPage() {
       }, 100)
     } catch (err) {
       console.error('Dev login error:', err)
-      setError('Development login failed')
+      
+      // Улучшенная обработка ошибок для продакшн-режима
+      if ((err as any)?.code === 'NETWORK_ERROR' || (err as any)?.isNetworkError) {
+        setError('Сервер недоступен. Пожалуйста, попробуйте позже.')
+      } else if (err instanceof Error && err.message.includes('Пользователь не найден')) {
+        setError('База данных не инициализирована. Пожалуйста, подождите несколько минут и попробуйте снова.')
+      } else {
+        setError('Ошибка входа: ' + (err instanceof Error ? err.message : 'Неизвестная ошибка'))
+      }
     } finally {
       setIsLoading(false)
     }

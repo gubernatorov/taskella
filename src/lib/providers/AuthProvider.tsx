@@ -39,13 +39,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .catch((error) => {
           console.error('Auth validation error:', error)
           // Проверяем, является ли ошибка ошибкой "Пользователь не найден"
-          // Это может произойти после очистки БД
+          // Это может произойти после очистки БД или при первом запуске в продакшене
           if (error.message === 'Пользователь не найден' || error.code === 'USER_NOT_FOUND') {
             console.log('User not found in database, clearing token and user state')
             // Очищаем токен и состояние пользователя
             localStorage.removeItem('auth_token')
             setToken(null)
             setUser(null)
+          } else if (error.code === 'NETWORK_ERROR' || error.isNetworkError ||
+                    (error.message && (error.message.includes('Failed to fetch') ||
+                                      error.message.includes('Сетевая ошибка')))) {
+            // Ошибка сети или API недоступен
+            console.log('API unavailable, keeping token for retry')
+            // Не очищаем токен, просто устанавливаем isLoading в false
+            // Это позволит пользователю продолжить работу с приложением
           } else {
             // Другие ошибки валидации токена
             localStorage.removeItem('auth_token')

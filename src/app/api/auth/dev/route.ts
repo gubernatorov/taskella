@@ -29,13 +29,31 @@ export async function POST(request: NextRequest) {
     let dbUser = await userRepo.findByTelegramId(telegramId)
     
     if (!dbUser) {
-      // Создаем тестового пользователя в БД
-      dbUser = await userRepo.create({
-        telegramId,
-        firstName,
-        lastName,
-        username,
-      })
+      // Если пользователь не найден, возможно база данных не инициализирована
+      // В режиме разработки также может потребоваться инициализация
+      console.log('User not found, attempting to initialize database...')
+      
+      try {
+        // Пытаемся инициализировать базу данных
+        const { initializeDatabase } = await import('@/lib/db/init')
+        await initializeDatabase({ force: false, seedData: true, createIndexes: true })
+        
+        // Повторно пытаемся найти пользователя после инициализации
+        dbUser = await userRepo.findByTelegramId(telegramId)
+      } catch (initError) {
+        console.error('Failed to initialize database:', initError)
+        // Не возвращаем ошибку, просто продолжаем и создадим пользователя
+      }
+      
+      // Если пользователь все еще не найден, создаем его
+      if (!dbUser) {
+        dbUser = await userRepo.create({
+          telegramId,
+          firstName,
+          lastName,
+          username,
+        })
+      }
     }
 
     // Создаем токен с userId из БД

@@ -55,6 +55,16 @@ class ApiClient {
       return data
     } catch (error) {
       console.error(`API request failed: ${endpoint}`, error)
+      
+      // Улучшенная обработка ошибок для продакшн-режима
+      if (error instanceof Error && error.message === 'Failed to fetch') {
+        // Создаем более информативную ошибку для сетевых проблем
+        const networkError = new Error('Сетевая ошибка: сервер недоступен')
+        ;(networkError as any).code = 'NETWORK_ERROR'
+        ;(networkError as any).isNetworkError = true
+        throw networkError
+      }
+      
       throw error
     }
   }
