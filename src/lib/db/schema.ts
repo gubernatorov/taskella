@@ -68,3 +68,15 @@ export const comments = sqliteTable('comments', {
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
+
+// Таблица вложений к задачам
+export const attachments = sqliteTable('attachments', {
+  id: text('id').primaryKey(),
+  fileName: text('file_name').notNull(),
+  originalName: text('original_name').notNull(),
+  fileSize: integer('file_size').notNull(),
+  mimeType: text('mime_type').notNull(),
+  taskId: text('task_id').notNull().references(() => tasks.id, { onDelete: 'cascade' }),
+  uploadedById: text('uploaded_by_id').notNull().references(() => users.id),
+  createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+})
