@@ -53,6 +53,7 @@ export default function LoginPage() {
   const [isTelegramApp, setIsTelegramApp] = useState(false)
   const [isDevMode, setIsDevMode] = useState(false)
   const [hasAttemptedAuth, setHasAttemptedAuth] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
 
   const handleTelegramLogin = useCallback(async () => {
     const webApp = window.Telegram?.WebApp
@@ -101,7 +102,15 @@ export default function LoginPage() {
       }, 100)
     } catch (err) {
       console.error('Login error:', err)
-      setError(err instanceof Error ? err.message : 'An error occurred during login')
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during login'
+      setError(errorMessage)
+      setAuthError(errorMessage)
+      
+      // Если ошибка связана с отсутствием пользователя в БД (после очистки),
+      // не пытаемся автоматически войти снова
+      if (errorMessage.includes('Пользователь не найден') || (err as any)?.code === 'USER_NOT_FOUND') {
+        setHasAttemptedAuth(true)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -111,7 +120,7 @@ export default function LoginPage() {
     // Проверяем, запущено ли приложение в Telegram
     const webApp = window.Telegram?.WebApp
     
-    if (webApp?.initData && !hasAttemptedAuth) {
+    if (webApp?.initData && !hasAttemptedAuth && !authError) {
       setIsTelegramApp(true)
       webApp.ready()
       setHasAttemptedAuth(true)
@@ -123,7 +132,7 @@ export default function LoginPage() {
       setIsDevMode(true)
       console.log('Running in development mode (outside Telegram)')
     }
-  }, [handleTelegramLogin, hasAttemptedAuth])
+  }, [handleTelegramLogin, hasAttemptedAuth, authError])
 
   const handleDevLogin = async () => {
     setIsLoading(true)
@@ -186,6 +195,18 @@ export default function LoginPage() {
         {error && (
           <div className="rounded-md bg-red-50 p-4">
             <p className="text-sm text-red-800">{error}</p>
+            {(error.includes('Пользователь не найден') || error.includes('USER_NOT_FOUND')) && (
+              <Button
+                onClick={() => {
+                  setError(null)
+                  setAuthError(null)
+                  setHasAttemptedAuth(false)
+                }}
+                className="mt-2 w-full bg-red-600 hover:bg-red-700"
+              >
+                Попробовать войти снова
+              </Button>
+            )}
           </div>
         )}
 

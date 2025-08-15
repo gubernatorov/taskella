@@ -36,7 +36,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .then((user) => {
           setUser(user)
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error('Auth validation error:', error)
+          // Проверяем, является ли ошибка ошибкой "Пользователь не найден"
+          // Это может произойти после очистки БД
+          if (error.message === 'Пользователь не найден' || error.code === 'USER_NOT_FOUND') {
+            console.log('User not found in database, clearing token')
+            // Очищаем только токен, но не перенаправляем пользователя
+            // Это позволит странице входа обработать ситуацию корректно
+          }
           // Токен невалиден, очищаем
           localStorage.removeItem('auth_token')
           setToken(null)

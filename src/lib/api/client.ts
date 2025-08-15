@@ -41,7 +41,13 @@ class ApiClient {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         console.error('API error response:', errorData)
-        throw new Error(errorData.message || `HTTP ${response.status}`)
+        // Создаем объект ошибки с дополнительной информацией
+        const error = new Error(errorData.message || `HTTP ${response.status}`)
+        // Добавляем код ошибки в объект ошибки
+        if (errorData.code) {
+          (error as any).code = errorData.code
+        }
+        throw error
       }
 
       const data = await response.json()
