@@ -34,14 +34,13 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
 
     console.log('Hash found:', hash.substring(0, 10) + '...')
 
-    // Удаляем hash и signature из параметров для проверки
+    // Удаляем только hash из параметров для проверки
     urlParams.delete('hash')
-    urlParams.delete('signature')
     
-    // Сортируем параметры и создаем строку для проверки
+    // Создаем строку для проверки - НЕ декодируем значения!
     const dataCheckString = Array.from(urlParams.entries())
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, value]) => `${key}=${decodeURIComponent(value)}`)
+      .map(([key, value]) => `${key}=${value}`)
       .join('\n')
 
     console.log('Data check string length:', dataCheckString.length)
@@ -59,7 +58,7 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
     // Создаем HMAC для проверки
     const calculatedHash = crypto
       .createHmac('sha256', secretKey)
-      .update(dataCheckString)
+      .update(dataCheckString, 'utf8')
       .digest('hex')
 
     console.log('Calculated hash:', calculatedHash.substring(0, 10) + '...')
@@ -81,7 +80,7 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
 
     console.log('User data found:', userParam.substring(0, 50) + '...')
 
-    const userData = JSON.parse(userParam) as TelegramUser
+    const userData = JSON.parse(decodeURIComponent(userParam)) as TelegramUser
     
     // Проверяем время авторизации (не старше 24 часов)
     const authDate = userData.auth_date
