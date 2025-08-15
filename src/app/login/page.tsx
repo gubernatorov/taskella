@@ -55,8 +55,15 @@ export default function LoginPage() {
 
   const handleTelegramLogin = useCallback(async () => {
     const webApp = window.Telegram?.WebApp
+    let initData = webApp?.initData
+
+    // Если WebApp недоступен и мы в режиме разработки, используем тестовые данные
+    if (!initData && isDevMode) {
+      initData = 'dev_mode_test'
+      console.log('Using dev mode for Telegram auth')
+    }
     
-    if (!webApp?.initData) {
+    if (!initData) {
       setError('Telegram WebApp not available')
       return
     }
@@ -71,7 +78,7 @@ export default function LoginPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          initData: webApp.initData,
+          initData: initData,
         }),
       })
 
@@ -93,7 +100,7 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [router])
+  }, [router, isDevMode])
 
   useEffect(() => {
     // Проверяем, запущено ли приложение в Telegram
@@ -178,7 +185,7 @@ export default function LoginPage() {
                 disabled={isLoading}
                 className="w-full"
               >
-                {isLoading ? 'Signing in...' : 'Continue as Test User'}
+                {isLoading ? 'Signing in...' : 'Continue as Test User (Dev API)'}
               </Button>
               
               <div className="relative">
@@ -189,6 +196,14 @@ export default function LoginPage() {
                   <span className="bg-white px-2 text-gray-500">Or</span>
                 </div>
               </div>
+
+              <Button
+                onClick={handleTelegramLogin}
+                disabled={isLoading}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                {isLoading ? 'Signing in...' : 'Test Telegram Auth (Dev Mode)'}
+              </Button>
 
               <div className="rounded-md bg-blue-50 p-4">
                 <h3 className="text-sm font-medium text-blue-800">

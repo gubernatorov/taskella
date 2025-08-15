@@ -84,17 +84,10 @@ export async function POST(request: NextRequest) {
     // Проверяем наличие необходимых переменных окружения
     const jwtSecret = process.env.JWT_SECRET
     const botToken = process.env.TELEGRAM_BOT_TOKEN
+    const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
     
     if (!jwtSecret) {
       console.error('JWT_SECRET environment variable is missing')
-      return NextResponse.json(
-        { message: 'Ошибка конфигурации сервера', code: 'SERVER_CONFIG_ERROR' },
-        { status: 500 }
-      )
-    }
-
-    if (!botToken) {
-      console.error('TELEGRAM_BOT_TOKEN environment variable is missing')
       return NextResponse.json(
         { message: 'Ошибка конфигурации сервера', code: 'SERVER_CONFIG_ERROR' },
         { status: 500 }
@@ -111,14 +104,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Валидируем данные Telegram
-    const telegramUser = validateTelegramData(body.initData, botToken)
-    
-    if (!telegramUser) {
-      return NextResponse.json(
-        { message: 'Недействительные данные авторизации', code: 'INVALID_TELEGRAM_DATA' },
-        { status: 401 }
-      )
+    let telegramUser: TelegramUser | null = null
+
+    // Режим разработки - обрабатываем тестовые случаи
+    if (isDevMode && (!botToken || body.initData === 'dev_mode_test')) {
+      console.log('Development mode: using mock Telegram data')
+      
+      // Создаем моковые данные для разработки
+      telegramUser = {
+        id: 123456789,
+        first_name: 'Dev',
+        last_name: 'User',
+        username: 'devuser',
+        photo_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+        auth_date: Math.floor(Date.now() / 1000),
+        hash: 'dev_hash'
+      }
+    } else {
+      // Продакшн режим - валидируем реальные Telegram данные
+      if (!botToken) {
+        console.error('TELEGRAM_BOT_TOKEN environment variable is missing')
+        return NextResponse.json(
+          { message: 'Ошибка конфигурации сервера', code: 'SERVER_CONFIG_ERROR' },
+          { status: 500 }
+        )
+      }
+
+      // Валидируем данные Telegram
+      telegramUser = validateTelegramData(body.initData, botToken)
+      
+      if (!telegramUser) {
+        return NextResponse.json(
+          { message: 'Недействительные данные авторизации', code: 'INVALID_TELEGRAM_DATA' },
+          { status: 401 }
+        )
+      }
     }
 
     // Ищем пользователя в базе
