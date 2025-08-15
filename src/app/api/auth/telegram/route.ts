@@ -34,8 +34,9 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
 
     console.log('Hash found:', hash.substring(0, 10) + '...')
 
-    // Удаляем hash из параметров для проверки
+    // Удаляем hash и signature из параметров для проверки
     urlParams.delete('hash')
+    urlParams.delete('signature')
     
     // Сортируем параметры и создаем строку для проверки
     const dataCheckString = Array.from(urlParams.entries())
@@ -45,6 +46,7 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
 
     console.log('Data check string length:', dataCheckString.length)
     console.log('Data check string preview:', dataCheckString.substring(0, 100) + '...')
+    console.log('Parameters used in validation:', Array.from(urlParams.keys()))
 
     // Создаем secret key из bot token
     const secretKey = crypto
