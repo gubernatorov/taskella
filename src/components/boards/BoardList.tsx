@@ -54,9 +54,9 @@ export function BoardList() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Проект</label>
+              <label htmlFor="project-select" className="text-sm font-medium">Проект</label>
               <Select value={selectedProject} onValueChange={setSelectedProject}>
-                <SelectTrigger>
+                <SelectTrigger id="project-select">
                   <SelectValue placeholder="Выберите проект" />
                 </SelectTrigger>
                 <SelectContent>
@@ -70,9 +70,9 @@ export function BoardList() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Тип доски</label>
+              <label htmlFor="board-type-select" className="text-sm font-medium">Тип доски</label>
               <Select value={boardType} onValueChange={(value: BoardType) => setBoardType(value)}>
-                <SelectTrigger>
+                <SelectTrigger id="board-type-select">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -92,7 +92,19 @@ export function BoardList() {
             <h2 className="text-2xl font-bold">
               {selectedProjectData?.name} - {boardType === 'kanban' ? 'Kanban' : 'Scrum'} доска
             </h2>
-            <Button variant="outline" onClick={() => window.location.reload()}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                // Используем более React-подходный способ обновления данных
+                const currentProject = selectedProject;
+                const currentBoardType = boardType;
+                setSelectedProject('');
+                setTimeout(() => {
+                  setSelectedProject(currentProject);
+                  setBoardType(currentBoardType);
+                }, 100);
+              }}
+            >
               Обновить
             </Button>
           </div>

@@ -134,10 +134,10 @@ export function ScrumBoard({ tasks, projectId }: ScrumBoardProps) {
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold text-sm">{column.title}</h3>
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs" aria-label={`${columnTasks.length} задач`}>
                         {columnTasks.length}
                       </Badge>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs" aria-label={`${storyPoints} story points`}>
                         {storyPoints} SP
                       </Badge>
                     </div>
@@ -164,8 +164,8 @@ export function ScrumBoard({ tasks, projectId }: ScrumBoardProps) {
                                 snapshot.isDragging ? 'shadow-lg scale-[1.02]' : 'hover:shadow-md hover:scale-[1.01]'
                               }`}
                             >
-                              <Card className="h-full">
-                                <Link href={`/tasks/${task.id}`}>
+                              <Link href={`/tasks/${task.id}`} className="block">
+                                <Card className="h-full hover:shadow-md transition-shadow">
                                   <CardContent className="p-4 space-y-3">
                                     <div className="flex items-start justify-between">
                                       <div className="space-y-2 flex-1">
@@ -180,7 +180,7 @@ export function ScrumBoard({ tasks, projectId }: ScrumBoardProps) {
                                             {task.type}
                                           </Badge>
                                         </div>
-                                        <h4 className="font-medium text-sm leading-tight hover:text-primary transition-colors cursor-pointer">
+                                        <h4 className="font-medium text-sm leading-tight hover:text-primary transition-colors">
                                           {task.title}
                                         </h4>
                                       </div>
@@ -229,8 +229,8 @@ export function ScrumBoard({ tasks, projectId }: ScrumBoardProps) {
                                       </div>
                                     </div>
                                   </CardContent>
-                                </Link>
-                              </Card>
+                                </Card>
+                              </Link>
                             </div>
                           )}
                         </Draggable>

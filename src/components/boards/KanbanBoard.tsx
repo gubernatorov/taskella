@@ -80,9 +80,9 @@ export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
         {KANBAN_COLUMNS.map(column => (
           <div key={column.id} className="space-y-3">
             <div className={`p-3 rounded-lg ${column.color}`}>
-              <h3 className="font-semibold text-sm">
-                {column.title}
-                <Badge variant="secondary" className="ml-2">
+              <h3 className="font-semibold text-sm flex items-center justify-between">
+                <span>{column.title}</span>
+                <Badge variant="secondary" className="ml-2" aria-label={`${getTasksByStatus(column.id).length} задач`}>
                   {getTasksByStatus(column.id).length}
                 </Badge>
               </h3>
@@ -108,8 +108,8 @@ export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
                             snapshot.isDragging ? 'shadow-lg scale-[1.02]' : 'hover:shadow-md hover:scale-[1.01]'
                           }`}
                         >
-                          <Card className="h-full">
-                            <Link href={`/tasks/${task.id}`}>
+                          <Link href={`/tasks/${task.id}`} className="block">
+                            <Card className="h-full hover:shadow-md transition-shadow">
                               <CardContent className="p-3 space-y-2">
                                 <div className="flex items-start justify-between">
                                   <div className="space-y-1 flex-1">
@@ -121,7 +121,7 @@ export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
                                         {task.type}
                                       </Badge>
                                     </div>
-                                    <h4 className="font-medium text-sm leading-tight hover:text-primary transition-colors cursor-pointer">
+                                    <h4 className="font-medium text-sm leading-tight hover:text-primary transition-colors">
                                       {task.title}
                                     </h4>
                                   </div>
@@ -165,8 +165,8 @@ export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
                                   )}
                                 </div>
                               </CardContent>
-                            </Link>
-                          </Card>
+                            </Card>
+                          </Link>
                         </div>
                       )}
                     </Draggable>
