@@ -99,6 +99,15 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
 
 export async function POST(request: NextRequest) {
   try {
+    // Инициализируем базу данных если нужно
+    try {
+      const { quickSetup } = await import('@/lib/db/init')
+      await quickSetup()
+    } catch (dbError) {
+      console.warn('Database initialization warning:', dbError)
+      // Продолжаем выполнение, возможно БД уже инициализирована
+    }
+
     // Проверяем наличие необходимых переменных окружения
     const jwtSecret = process.env.JWT_SECRET
     const botToken = process.env.TELEGRAM_BOT_TOKEN

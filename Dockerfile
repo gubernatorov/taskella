@@ -68,4 +68,28 @@ ENV HOSTNAME="0.0.0.0"
 ENV DATABASE_URL="file:./data/sqlite.db"
 ENV NODE_ENV=production
 
-CMD ["node", "server.js"]
+# Create a startup script
+COPY --chown=nextjs:nodejs <<EOF /app/start.sh
+#!/bin/sh
+echo "🚀 Starting Taskella..."
+
+# Initialize database
+echo "🗄️ Initializing database..."
+if [ ! -f "./data/sqlite.db" ]; then
+    echo "📂 Database file not found, initializing..."
+    # Wait for app to start and then initialize DB
+    timeout 30 sh -c 'while ! nc -z localhost 3000; do sleep 1; done' && \
+    curl -X POST http://localhost:3000/api/init-db \
+         -H "x-init-secret: \${INIT_DB_SECRET:-dev-init-secret}" \
+         --max-time 30 \
+         --retry 3 \
+         --retry-delay 2 || echo "⚠️ Failed to initialize database via API, will try at runtime"
+fi
+
+echo "🌟 Starting application..."
+exec node server.js
+EOF
+
+RUN chmod +x /app/start.sh
+
+CMD ["/app/start.sh"]
