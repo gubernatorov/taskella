@@ -78,12 +78,12 @@ echo "🗄️ Initializing database..."
 if [ ! -f "./data/sqlite.db" ]; then
     echo "📂 Database file not found, initializing..."
     # Wait for app to start and then initialize DB
-    timeout 30 sh -c 'while ! nc -z localhost 3000; do sleep 1; done' && \
-    curl -X POST http://localhost:3000/api/init-db \
-         -H "x-init-secret: \${INIT_DB_SECRET:-dev-init-secret}" \
-         --max-time 30 \
-         --retry 3 \
-         --retry-delay 2 || echo "⚠️ Failed to initialize database via API, will try at runtime"
+    (timeout 30 sh -c 'while ! nc -z localhost 3000; do sleep 1; done' && \
+     curl -X POST http://localhost:3000/api/init-db \
+          -H "x-init-secret: \${INIT_DB_SECRET:-dev-init-secret}" \
+          --max-time 30 \
+          --retry 3 \
+          --retry-delay 2) || echo "⚠️ Failed to initialize database via API, will try at runtime"
 fi
 
 echo "🌟 Starting application..."

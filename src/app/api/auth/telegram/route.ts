@@ -40,10 +40,11 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
     // Сортируем параметры и создаем строку для проверки
     const dataCheckString = Array.from(urlParams.entries())
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, value]) => `${key}=${value}`)
+      .map(([key, value]) => `${key}=${decodeURIComponent(value)}`)
       .join('\n')
 
     console.log('Data check string length:', dataCheckString.length)
+    console.log('Data check string preview:', dataCheckString.substring(0, 100) + '...')
 
     // Создаем secret key из bot token
     const secretKey = crypto
