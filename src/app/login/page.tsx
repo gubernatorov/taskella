@@ -52,6 +52,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isTelegramApp, setIsTelegramApp] = useState(false)
   const [isDevMode, setIsDevMode] = useState(false)
+  const [hasAttemptedAuth, setHasAttemptedAuth] = useState(false)
 
   const handleTelegramLogin = useCallback(async () => {
     const webApp = window.Telegram?.WebApp
@@ -92,8 +93,12 @@ export default function LoginPage() {
       // Сохраняем токен
       localStorage.setItem('auth_token', data.token)
       
-      // Перенаправляем на главную страницу
-      router.push('/dashboard')
+      console.log('Token saved successfully, redirecting to dashboard...')
+      
+      // Добавляем небольшую задержку перед редиректом
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 100)
     } catch (err) {
       console.error('Login error:', err)
       setError(err instanceof Error ? err.message : 'An error occurred during login')
@@ -106,18 +111,19 @@ export default function LoginPage() {
     // Проверяем, запущено ли приложение в Telegram
     const webApp = window.Telegram?.WebApp
     
-    if (webApp?.initData) {
+    if (webApp?.initData && !hasAttemptedAuth) {
       setIsTelegramApp(true)
       webApp.ready()
+      setHasAttemptedAuth(true)
       
       // Автоматический вход для Telegram пользователей
       handleTelegramLogin()
-    } else {
+    } else if (!webApp?.initData) {
       // Режим разработки - приложение открыто в обычном браузере
       setIsDevMode(true)
       console.log('Running in development mode (outside Telegram)')
     }
-  }, [handleTelegramLogin])
+  }, [handleTelegramLogin, hasAttemptedAuth])
 
   const handleDevLogin = async () => {
     setIsLoading(true)
@@ -133,7 +139,13 @@ export default function LoginPage() {
       }
 
       await devLogin(testUser)
-      router.push('/dashboard')
+      
+      console.log('Dev login successful, redirecting to dashboard...')
+      
+      // Добавляем небольшую задержку перед редиректом
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 100)
     } catch (err) {
       console.error('Dev login error:', err)
       setError('Development login failed')

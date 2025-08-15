@@ -19,8 +19,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [hasInitialized, setHasInitialized] = useState(false)
 
   useEffect(() => {
+    // Предотвращаем повторную инициализацию
+    if (hasInitialized) return
+
+    setHasInitialized(true)
+    
     // Проверяем сохраненный токен при инициализации
     const savedToken = localStorage.getItem('auth_token')
     if (savedToken) {
@@ -41,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       setIsLoading(false)
     }
-  }, [])
+  }, [hasInitialized])
 
   const login = async (initData: string) => {
     try {
