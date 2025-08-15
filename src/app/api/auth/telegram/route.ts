@@ -21,6 +21,9 @@ interface TelegramUser {
  */
 function validateTelegramData(initData: string, botToken: string): TelegramUser | null {
   try {
+    console.log('Validating Telegram data...')
+    console.log('InitData length:', initData.length)
+    
     // Парсим initData
     const urlParams = new URLSearchParams(initData)
     const hash = urlParams.get('hash')
@@ -28,6 +31,8 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
     if (!hash) {
       throw new Error('Missing hash parameter')
     }
+
+    console.log('Hash found:', hash.substring(0, 10) + '...')
 
     // Удаляем hash из параметров для проверки
     urlParams.delete('hash')
@@ -38,11 +43,15 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
       .map(([key, value]) => `${key}=${value}`)
       .join('\n')
 
+    console.log('Data check string length:', dataCheckString.length)
+
     // Создаем secret key из bot token
     const secretKey = crypto
       .createHmac('sha256', 'WebAppData')
       .update(botToken)
       .digest()
+
+    console.log('Secret key created successfully')
 
     // Создаем HMAC для проверки
     const calculatedHash = crypto
@@ -50,8 +59,14 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
       .update(dataCheckString)
       .digest('hex')
 
+    console.log('Calculated hash:', calculatedHash.substring(0, 10) + '...')
+    console.log('Original hash:', hash.substring(0, 10) + '...')
+
     // Проверяем hash
     if (calculatedHash !== hash) {
+      console.error('Hash validation failed')
+      console.error('Expected:', hash)
+      console.error('Got:', calculatedHash)
       throw new Error('Invalid hash')
     }
 
@@ -60,6 +75,8 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
     if (!userParam) {
       throw new Error('Missing user data')
     }
+
+    console.log('User data found:', userParam.substring(0, 50) + '...')
 
     const userData = JSON.parse(userParam) as TelegramUser
     
@@ -72,6 +89,7 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
       throw new Error('Authorization data is too old')
     }
 
+    console.log('Telegram data validation successful')
     return userData
   } catch (error) {
     console.error('Telegram data validation error:', error)
@@ -122,16 +140,19 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Продакшн режим - валидируем реальные Telegram данные
-      if (!botToken) {
-        console.error('TELEGRAM_BOT_TOKEN environment variable is missing')
-        return NextResponse.json(
-          { message: 'Ошибка конфигурации сервера', code: 'SERVER_CONFIG_ERROR' },
-          { status: 500 }
-        )
-      }
-
-      // Валидируем данные Telegram
-      telegramUser = validateTelegramData(body.initData, botToken)
+        if (!botToken) {
+          console.error('TELEGRAM_BOT_TOKEN environment variable is missing')
+          return NextResponse.json(
+            { message: 'Ошибка конфигурации сервера', code: 'SERVER_CONFIG_ERROR' },
+            { status: 500 }
+          )
+        }
+  
+        // Логируем токен для отладки (только первые символы)
+        console.log('Bot token preview:', botToken.substring(0, 10) + '...')
+  
+        // Валидируем данные Telegram
+        telegramUser = validateTelegramData(body.initData, botToken)
       
       if (!telegramUser) {
         return NextResponse.json(
