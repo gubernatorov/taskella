@@ -28,8 +28,11 @@ interface TaskPageProps {
 }
 
 export default function TaskPage({ params }: TaskPageProps) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editFormData, setEditFormData] = useState<UpdateTaskRequest>({})
+  const [isEditingDescription, setIsEditingDescription] = useState(false)
+  const [isEditingDetails, setIsEditingDetails] = useState(false)
+  const [editDescription, setEditDescription] = useState('')
+  const [editDetails, setEditDetails] = useState<Omit<UpdateTaskRequest, 'description' | 'title'>>({})
+  const [editTitle, setEditTitle] = useState('')
   const { data: task, isLoading } = useTask(params.id)
   const updateTask = useUpdateTask()
 
@@ -56,34 +59,58 @@ export default function TaskPage({ params }: TaskPageProps) {
     }
   }
 
-  const handleEditTask = () => {
+  const handleEditDescription = () => {
     if (task) {
-      setEditFormData({
-        title: task.title,
-        description: task.description,
+      setEditDescription(task.description || '')
+      setEditTitle(task.title)
+      setIsEditingDescription(true)
+    }
+  }
+
+  const handleSaveDescription = async () => {
+    try {
+      await updateTask.mutateAsync({
+        id: task!.id,
+        data: { title: editTitle, description: editDescription }
+      })
+      setIsEditingDescription(false)
+    } catch (error) {
+      console.error('Failed to update task description:', error)
+    }
+  }
+
+  const handleCancelEditDescription = () => {
+    setIsEditingDescription(false)
+    setEditDescription('')
+    setEditTitle('')
+  }
+
+  const handleEditDetails = () => {
+    if (task) {
+      setEditDetails({
         status: task.status,
         priority: task.priority,
         estimatedHours: task.estimatedHours,
       })
-      setIsEditing(true)
+      setIsEditingDetails(true)
     }
   }
 
-  const handleSaveEdit = async () => {
+  const handleSaveDetails = async () => {
     try {
       await updateTask.mutateAsync({
         id: task!.id,
-        data: editFormData
+        data: editDetails
       })
-      setIsEditing(false)
+      setIsEditingDetails(false)
     } catch (error) {
-      console.error('Failed to update task:', error)
+      console.error('Failed to update task details:', error)
     }
   }
 
-  const handleCancelEdit = () => {
-    setIsEditing(false)
-    setEditFormData({})
+  const handleCancelEditDetails = () => {
+    setIsEditingDetails(false)
+    setEditDetails({})
   }
 
   return (
@@ -95,11 +122,11 @@ export default function TaskPage({ params }: TaskPageProps) {
           </Link>
         </Button>
         <div className="flex-1">
-          {isEditing ? (
+          {isEditingDescription ? (
             <div className="space-y-2">
               <Input
-                value={editFormData.title || ''}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
                 className="text-3xl font-bold border-0 p-0 h-auto"
                 placeholder="Название задачи"
               />
@@ -128,8 +155,8 @@ export default function TaskPage({ params }: TaskPageProps) {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Описание</CardTitle>
-                {!isEditing && (
-                  <Button variant="outline" size="sm" onClick={handleEditTask}>
+                {!isEditingDescription && (
+                  <Button variant="outline" size="sm" onClick={handleEditDescription}>
                     <Edit className="h-4 w-4 mr-2" />
                     Редактировать
                   </Button>
@@ -137,20 +164,20 @@ export default function TaskPage({ params }: TaskPageProps) {
               </div>
             </CardHeader>
             <CardContent className="min-h-[200px]">
-              {isEditing ? (
+              {isEditingDescription ? (
                 <div className="space-y-4">
                   <Textarea
-                    value={editFormData.description || ''}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
                     className="min-h-[150px]"
                     placeholder="Описание задачи"
                   />
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={handleCancelEdit}>
+                    <Button variant="outline" onClick={handleCancelEditDescription}>
                       <X className="h-4 w-4 mr-2" />
                       Отмена
                     </Button>
-                    <Button onClick={handleSaveEdit} disabled={updateTask.isPending}>
+                    <Button onClick={handleSaveDescription} disabled={updateTask.isPending}>
                       <Save className="h-4 w-4 mr-2" />
                       {updateTask.isPending ? 'Сохранение...' : 'Сохранить'}
                     </Button>
@@ -182,15 +209,23 @@ export default function TaskPage({ params }: TaskPageProps) {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Детали</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Детали</CardTitle>
+                {!isEditingDetails && (
+                  <Button variant="outline" size="sm" onClick={handleEditDetails}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Редактировать
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <h4 className="text-sm font-medium mb-2">Статус</h4>
-                {isEditing ? (
+                {isEditingDetails ? (
                   <Select
-                    value={editFormData.status}
-                    onValueChange={(value: TaskStatus) => setEditFormData(prev => ({ ...prev, status: value }))}
+                    value={editDetails.status}
+                    onValueChange={(value: TaskStatus) => setEditDetails(prev => ({ ...prev, status: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите статус" />
@@ -223,12 +258,12 @@ export default function TaskPage({ params }: TaskPageProps) {
                 )}
               </div>
 
-              {isEditing ? (
+              {isEditingDetails ? (
                 <div>
                   <h4 className="text-sm font-medium mb-2">Приоритет</h4>
                   <Select
-                    value={editFormData.priority}
-                    onValueChange={(value: TaskPriority) => setEditFormData(prev => ({ ...prev, priority: value }))}
+                    value={editDetails.priority}
+                    onValueChange={(value: TaskPriority) => setEditDetails(prev => ({ ...prev, priority: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Выберите приоритет" />
@@ -249,7 +284,7 @@ export default function TaskPage({ params }: TaskPageProps) {
                 </div>
               )}
 
-              {isEditing ? (
+              {isEditingDetails ? (
                 <div>
                   <h4 className="text-sm font-medium mb-2">Оценочное время (часы)</h4>
                   <Input
@@ -257,11 +292,11 @@ export default function TaskPage({ params }: TaskPageProps) {
                     type="number"
                     step="1"
                     min="0"
-                    value={editFormData.estimatedHours || ''}
+                    value={editDetails.estimatedHours || ''}
                     onChange={(e) => {
                       const value = e.target.value
                       if (value === '' || /^\d+$/.test(value)) {
-                        setEditFormData(prev => ({ 
+                        setEditDetails(prev => ({ 
                           ...prev, 
                           estimatedHours: value ? parseInt(value, 10) : undefined 
                         }))
@@ -269,6 +304,16 @@ export default function TaskPage({ params }: TaskPageProps) {
                     }}
                     placeholder="Оценочное время"
                   />
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button variant="outline" onClick={handleCancelEditDetails}>
+                      <X className="h-4 w-4 mr-2" />
+                      Отмена
+                    </Button>
+                    <Button onClick={handleSaveDetails} disabled={updateTask.isPending}>
+                      <Save className="h-4 w-4 mr-2" />
+                      {updateTask.isPending ? 'Сохранение...' : 'Сохранить'}
+                    </Button>
+                  </div>
                 </div>
               ) : task.estimatedHours ? (
                 <div>
