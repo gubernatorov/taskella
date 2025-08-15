@@ -41,13 +41,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Проверяем, является ли ошибка ошибкой "Пользователь не найден"
           // Это может произойти после очистки БД
           if (error.message === 'Пользователь не найден' || error.code === 'USER_NOT_FOUND') {
-            console.log('User not found in database, clearing token')
-            // Очищаем только токен, но не перенаправляем пользователя
-            // Это позволит странице входа обработать ситуацию корректно
+            console.log('User not found in database, clearing token and user state')
+            // Очищаем токен и состояние пользователя
+            localStorage.removeItem('auth_token')
+            setToken(null)
+            setUser(null)
+          } else {
+            // Другие ошибки валидации токена
+            localStorage.removeItem('auth_token')
+            setToken(null)
+            setUser(null)
           }
-          // Токен невалиден, очищаем
-          localStorage.removeItem('auth_token')
-          setToken(null)
         })
         .finally(() => {
           setIsLoading(false)
@@ -63,6 +67,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(response.user)
       setToken(response.token)
       localStorage.setItem('auth_token', response.token)
+      // Устанавливаем флаг недавней аутентификации
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('just_authenticated', 'true')
+      }
     } catch (error) {
       console.error('Login error:', error)
       throw error
@@ -75,6 +83,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(response.user)
       setToken(response.token)
       localStorage.setItem('auth_token', response.token)
+      // Устанавливаем флаг недавней аутентификации
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('just_authenticated', 'true')
+      }
     } catch (error) {
       console.error('Dev login error:', error)
       throw error

@@ -93,6 +93,8 @@ export default function LoginPage() {
       
       // Сохраняем токен
       localStorage.setItem('auth_token', data.token)
+      // Устанавливаем флаг недавней аутентификации
+      sessionStorage.setItem('just_authenticated', 'true')
       
       console.log('Token saved successfully, redirecting to dashboard...')
       
@@ -120,6 +122,17 @@ export default function LoginPage() {
     // Проверяем, запущено ли приложение в Telegram
     const webApp = window.Telegram?.WebApp
     
+    // Проверяем, не был ли пользователь только что аутентифицирован
+    const token = localStorage.getItem('auth_token')
+    const justAuthenticated = sessionStorage.getItem('just_authenticated') === 'true'
+    
+    if (justAuthenticated && token) {
+      console.log('User just authenticated, redirecting to dashboard...')
+      sessionStorage.removeItem('just_authenticated')
+      router.push('/dashboard')
+      return
+    }
+    
     if (webApp?.initData && !hasAttemptedAuth && !authError) {
       setIsTelegramApp(true)
       webApp.ready()
@@ -132,7 +145,7 @@ export default function LoginPage() {
       setIsDevMode(true)
       console.log('Running in development mode (outside Telegram)')
     }
-  }, [handleTelegramLogin, hasAttemptedAuth, authError])
+  }, [handleTelegramLogin, hasAttemptedAuth, authError, router])
 
   const handleDevLogin = async () => {
     setIsLoading(true)
@@ -148,6 +161,9 @@ export default function LoginPage() {
       }
 
       await devLogin(testUser)
+      
+      // Устанавливаем флаг недавней аутентификации
+      sessionStorage.setItem('just_authenticated', 'true')
       
       console.log('Dev login successful, redirecting to dashboard...')
       

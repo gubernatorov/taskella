@@ -32,8 +32,21 @@ export default function HomePage() {
           console.log('Redirecting to dashboard...')
           router.push('/dashboard')
         } else {
-          console.log('Redirecting to login...')
-          router.push('/login')
+          // Проверяем, есть ли токен в localStorage (возможно, только что установлен)
+          const token = localStorage.getItem('auth_token')
+          if (token) {
+            console.log('Token found but user not loaded yet, waiting...')
+            // Даем дополнительное время для загрузки пользователя
+            setTimeout(() => {
+              if (!user) {
+                console.log('User still not loaded, redirecting to login...')
+                router.push('/login')
+              }
+            }, 500)
+          } else {
+            console.log('Redirecting to login...')
+            router.push('/login')
+          }
         }
       }, 50)
     }
