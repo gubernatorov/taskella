@@ -22,7 +22,7 @@ export function Header() {
       <div className="container flex h-14 items-center">
         <div className="mr-4 hidden md:flex">
           <h1 className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-lg font-semibold text-transparent">
-            Task Tracker
+            Taskella
           </h1>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">

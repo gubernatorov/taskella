@@ -21,7 +21,7 @@ export function ProjectCard({ project, compact = false }: ProjectCardProps) {
 
   if (compact) {
     return (
-      <Card className="glass glass-hover cursor-pointer animate-float-slow">
+      <Card className="glass glass-hover cursor-pointer">
         <Link href={`/projects/${project.id}`}>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -51,7 +51,7 @@ export function ProjectCard({ project, compact = false }: ProjectCardProps) {
   }
 
   return (
-    <Card className="glass glass-hover animate-float-slow">
+      <Card className="glass glass-hover">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
