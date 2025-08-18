@@ -267,7 +267,21 @@ export async function POST(request: NextRequest) {
     console.log(`  - Username: ${user.username || 'N/A'}`)
     console.log(`  - Token length: ${token.length}`)
     
-    return NextResponse.json(response)
+    // Создаем ответ с установкой cookie
+    const jsonResponse = NextResponse.json(response)
+    
+    // Устанавливаем cookie с токеном
+    jsonResponse.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60, // 30 дней
+      path: '/'
+    })
+    
+    console.log(`🍪 [${timestamp}] Cookie set in response`)
+    
+    return jsonResponse
     
   } catch (error) {
     const errorTimestamp = new Date().toISOString()

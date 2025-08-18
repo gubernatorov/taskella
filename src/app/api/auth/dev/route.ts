@@ -70,11 +70,25 @@ export async function POST(request: NextRequest) {
       { expiresIn: '7d' }
     )
 
-    return NextResponse.json({
+    // Создаем ответ с установкой cookie
+    const jsonResponse = NextResponse.json({
       success: true,
       token,
       user: dbUser,
     })
+    
+    // Устанавливаем cookie с токеном
+    jsonResponse.cookies.set('auth_token', token, {
+      httpOnly: true,
+      secure: false, // В режиме разработки всегда false
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60, // 7 дней
+      path: '/'
+    })
+    
+    console.log('🍪 Dev auth: Cookie set in response')
+    
+    return jsonResponse
   } catch (error) {
     console.error('Dev auth error:', error)
     return NextResponse.json(
