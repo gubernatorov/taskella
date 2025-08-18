@@ -5,9 +5,27 @@ import jwt from 'jsonwebtoken'
 const userRepo = new UserRepository()
 
 export async function GET(request: NextRequest) {
+  const timestamp = new Date().toISOString()
+  console.log(`👤 [${timestamp}] AUTH ME API REQUEST START`)
+  
   try {
+    // Логируем информацию о запросе
+    const url = request.url
+    const method = request.method
+    const headers = Object.fromEntries(request.headers.entries())
     const authHeader = request.headers.get('Authorization')
+    
+    console.log(`📝 [${timestamp}] Request details:`)
+    console.log(`  - URL: ${url}`)
+    console.log(`  - Method: ${method}`)
+    console.log(`  - User-Agent: ${headers['user-agent'] || 'Unknown'}`)
+    console.log(`  - Origin: ${headers['origin'] || 'Unknown'}`)
+    console.log(`  - Referer: ${headers['referer'] || 'Unknown'}`)
+    console.log(`  - Auth Header: ${authHeader ? 'Present' : 'Missing'}`)
+    console.log(`  - Auth Header Preview: ${authHeader ? authHeader.substring(0, 20) + '...' : 'N/A'}`)
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log(`❌ [${timestamp}] ERROR: Invalid or missing Authorization header`)
       return NextResponse.json(
         { message: 'Токен не предоставлен', code: 'NO_TOKEN' },
         { status: 401 }
@@ -64,15 +82,27 @@ export async function GET(request: NextRequest) {
         )
       }
 
+      console.log(`✅ [${timestamp}] SUCCESS: User found and returned`)
+      console.log(`  - User ID: ${user.id}`)
+      console.log(`  - Telegram ID: ${user.telegramId}`)
+      console.log(`  - Username: ${user.username || 'N/A'}`)
+      
       return NextResponse.json(user)
     } catch (jwtError) {
+      console.log(`❌ [${timestamp}] ERROR: Invalid JWT token`)
+      console.log(`  - Error: ${jwtError instanceof Error ? jwtError.message : 'Unknown error'}`)
       return NextResponse.json(
         { message: 'Неверный токен', code: 'INVALID_TOKEN' },
         { status: 401 }
       )
     }
   } catch (error) {
-    console.error('Get me error:', error)
+    const errorTimestamp = new Date().toISOString()
+    console.error(`❌ [${errorTimestamp}] AUTH ME ERROR:`)
+    console.error(`  - Error type: ${error instanceof Error ? error.constructor.name : 'Unknown'}`)
+    console.error(`  - Error message: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    console.error(`  - Error stack: ${error instanceof Error ? error.stack : 'No stack trace'}`)
+    
     return NextResponse.json(
       { message: 'Ошибка сервера', code: 'INTERNAL_ERROR' },
       { status: 500 }

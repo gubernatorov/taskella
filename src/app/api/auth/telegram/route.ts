@@ -100,7 +100,23 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
 }
 
 export async function POST(request: NextRequest) {
+  const timestamp = new Date().toISOString()
+  console.log(`🔐 [${timestamp}] TELEGRAM AUTH API REQUEST START`)
+  
   try {
+    // Логируем информацию о запросе
+    const url = request.url
+    const method = request.method
+    const headers = Object.fromEntries(request.headers.entries())
+    
+    console.log(`📝 [${timestamp}] Request details:`)
+    console.log(`  - URL: ${url}`)
+    console.log(`  - Method: ${method}`)
+    console.log(`  - Content-Type: ${headers['content-type'] || 'Unknown'}`)
+    console.log(`  - User-Agent: ${headers['user-agent'] || 'Unknown'}`)
+    console.log(`  - Origin: ${headers['origin'] || 'Unknown'}`)
+    console.log(`  - Referer: ${headers['referer'] || 'Unknown'}`)
+    
     // Инициализируем базу данных если нужно (только в продакшн-режиме и только один раз)
     if (process.env.NODE_ENV === 'production') {
       // Проверяем, была ли уже инициализация в этой сессии
@@ -137,8 +153,15 @@ export async function POST(request: NextRequest) {
 
     const body: TelegramAuthRequest = await request.json()
     
+    // Логируем информацию о теле запроса
+    console.log(`📦 [${timestamp}] Request body analysis:`)
+    console.log(`  - Has initData: ${!!body.initData}`)
+    console.log(`  - InitData length: ${body.initData ? body.initData.length : 0}`)
+    console.log(`  - InitData preview: ${body.initData ? body.initData.substring(0, 100) + '...' : 'N/A'}`)
+    
     // Проверяем наличие initData
     if (!body.initData) {
+      console.log(`❌ [${timestamp}] ERROR: Missing initData in request body`)
       return NextResponse.json(
         { message: 'Отсутствуют данные авторизации', code: 'MISSING_INIT_DATA' },
         { status: 400 }
@@ -238,14 +261,24 @@ export async function POST(request: NextRequest) {
       user
     }
 
-    console.log(`User authenticated successfully: ${user.id}`)
+    console.log(`✅ [${timestamp}] SUCCESS: User authenticated successfully`)
+    console.log(`  - User ID: ${user.id}`)
+    console.log(`  - Telegram ID: ${user.telegramId}`)
+    console.log(`  - Username: ${user.username || 'N/A'}`)
+    console.log(`  - Token length: ${token.length}`)
+    
     return NextResponse.json(response)
     
   } catch (error) {
-    console.error('Auth error:', error)
+    const errorTimestamp = new Date().toISOString()
+    console.error(`❌ [${errorTimestamp}] TELEGRAM AUTH ERROR:`)
+    console.error(`  - Error type: ${error instanceof Error ? error.constructor.name : 'Unknown'}`)
+    console.error(`  - Error message: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    console.error(`  - Error stack: ${error instanceof Error ? error.stack : 'No stack trace'}`)
     
     // Проверяем тип ошибки для более точного ответа
     if (error instanceof SyntaxError) {
+      console.log(`  - Response: 400 Bad Request (Invalid JSON)`)
       return NextResponse.json(
         { message: 'Неверный формат данных', code: 'INVALID_JSON' },
         { status: 400 }
@@ -253,12 +286,14 @@ export async function POST(request: NextRequest) {
     }
     
     if (error instanceof jwt.JsonWebTokenError) {
+      console.log(`  - Response: 500 Internal Server Error (Token Error)`)
       return NextResponse.json(
         { message: 'Ошибка создания токена', code: 'TOKEN_ERROR' },
         { status: 500 }
       )
     }
     
+    console.log(`  - Response: 500 Internal Server Error (Unknown Error)`)
     return NextResponse.json(
       { message: 'Внутренняя ошибка сервера', code: 'INTERNAL_ERROR' },
       { status: 500 }

@@ -80,41 +80,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [hasInitialized])
 
   const login = async (initData: string) => {
+    const timestamp = new Date().toISOString()
+    console.log(`🔐 [${timestamp}] LOGIN PROCESS START`)
+    console.log(`  - InitData length: ${initData.length}`)
+    console.log(`  - InitData preview: ${initData.substring(0, 100) + '...'}`)
+    
     try {
+      console.log(`📡 [${timestamp}] Calling auth API...`)
       const response = await authApi.login({ initData })
+      
+      console.log(`✅ [${timestamp}] LOGIN SUCCESS:`)
+      console.log(`  - User ID: ${response.user.id}`)
+      console.log(`  - Username: ${response.user.username || 'N/A'}`)
+      console.log(`  - Token length: ${response.token.length}`)
+      
       setUser(response.user)
       setToken(response.token)
       localStorage.setItem('auth_token', response.token)
+      
       // Устанавливаем флаг недавней аутентификации
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('just_authenticated', 'true')
+        console.log(`🎫 [${timestamp}] Just authenticated flag set`)
       }
-    } catch (error) {
-      console.error('Login error:', error)
+    } catch (error: any) {
+      const errorTimestamp = new Date().toISOString()
+      console.error(`❌ [${errorTimestamp}] LOGIN ERROR:`)
+      console.error(`  - Error Type: ${error?.constructor?.name || 'Unknown'}`)
+      console.error(`  - Error Message: ${error?.message || 'Unknown error'}`)
+      console.error(`  - Error Code: ${error?.code || 'No code'}`)
+      console.error(`  - Error Stack: ${error?.stack || 'No stack trace'}`)
       throw error
     }
   }
 
   const devLogin = async (userData: DevAuthRequest['user']) => {
+    const timestamp = new Date().toISOString()
+    console.log(`🔐 [${timestamp}] DEV LOGIN PROCESS START`)
+    console.log(`  - User Data:`, userData)
+    
     try {
+      console.log(`📡 [${timestamp}] Calling dev auth API...`)
       const response = await authApi.devLogin({ user: userData })
+      
+      console.log(`✅ [${timestamp}] DEV LOGIN SUCCESS:`)
+      console.log(`  - User ID: ${response.user.id}`)
+      console.log(`  - Username: ${response.user.username || 'N/A'}`)
+      console.log(`  - Token length: ${response.token.length}`)
+      
       setUser(response.user)
       setToken(response.token)
       localStorage.setItem('auth_token', response.token)
+      
       // Устанавливаем флаг недавней аутентификации
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('just_authenticated', 'true')
+        console.log(`🎫 [${timestamp}] Just authenticated flag set`)
       }
-    } catch (error) {
-      console.error('Dev login error:', error)
+    } catch (error: any) {
+      const errorTimestamp = new Date().toISOString()
+      console.error(`❌ [${errorTimestamp}] DEV LOGIN ERROR:`)
+      console.error(`  - Error Type: ${error?.constructor?.name || 'Unknown'}`)
+      console.error(`  - Error Message: ${error?.message || 'Unknown error'}`)
+      console.error(`  - Error Code: ${error?.code || 'No code'}`)
+      console.error(`  - Error Stack: ${error?.stack || 'No stack trace'}`)
       throw error
     }
   }
 
   const logout = () => {
+    const timestamp = new Date().toISOString()
+    console.log(`🚪 [${timestamp}] LOGOUT PROCESS START`)
+    
     setUser(null)
     setToken(null)
     localStorage.removeItem('auth_token')
+    
+    console.log(`✅ [${timestamp}] LOGOUT COMPLETED`)
+    console.log(`  - User state cleared`)
+    console.log(`  - Token state cleared`)
+    console.log(`  - LocalStorage cleared`)
   }
 
   return (

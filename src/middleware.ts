@@ -2,8 +2,22 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
+  // Серверное логирование всех запросов
+  const timestamp = new Date().toISOString()
+  const method = request.method
+  const url = request.nextUrl.pathname
+  const searchParams = request.nextUrl.search.toString()
+  const userAgent = request.headers.get('user-agent') || 'Unknown'
+  const referer = request.headers.get('referer') || 'Direct'
+  
+  console.log(`🌐 [${timestamp}] ${method} ${url}${searchParams ? '?' + searchParams : ''}`)
+  console.log(`📱 User-Agent: ${userAgent}`)
+  console.log(`🔗 Referer: ${referer}`)
+  
   // Проверяем, является ли это запросом к API аутентификации
   if (request.nextUrl.pathname.startsWith('/api/auth')) {
+    console.log(`🔐 Auth API request detected: ${url}`)
+    
     // Добавляем заголовок, указывающий на то, что это запрос аутентификации
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-auth-request', 'true')
@@ -13,6 +27,23 @@ export function middleware(request: NextRequest) {
         headers: requestHeaders,
       },
     })
+  }
+  
+  // Логируем запросы к защищенным страницам
+  if (url.startsWith('/dashboard') || url.startsWith('/tasks') || url.startsWith('/projects')) {
+    console.log(`🛡️ Protected page access: ${url}`)
+    
+    // Проверяем наличие токена авторизации
+    const authHeader = request.headers.get('authorization')
+    const cookieHeader = request.headers.get('cookie')
+    
+    console.log(`🔑 Auth Header: ${authHeader ? 'Present' : 'Missing'}`)
+    console.log(`🍪 Cookie Header: ${cookieHeader ? 'Present' : 'Missing'}`)
+    
+    if (cookieHeader) {
+      const hasAuthToken = cookieHeader.includes('auth_token')
+      console.log(`🎫 Auth Token in Cookie: ${hasAuthToken ? 'Present' : 'Missing'}`)
+    }
   }
   
   return NextResponse.next()

@@ -25,22 +25,35 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
+    const timestamp = new Date().toISOString()
     const url = `${this.baseURL}${endpoint}`
     const config: RequestInit = {
       headers: this.getHeaders(),
       ...options,
     }
 
-    console.log('API request:', { url, config })
+    console.log(`🌐 [${timestamp}] API REQUEST:`)
+    console.log(`  - URL: ${url}`)
+    console.log(`  - Method: ${config.method || 'GET'}`)
+    console.log(`  - Headers:`, config.headers)
+    console.log(`  - Body: ${config.body && typeof config.body === 'string' ? config.body.substring(0, 200) + '...' : config.body ? 'Non-string body' : 'None'}`)
 
     try {
       const response = await fetch(url, config)
       
-      console.log('API response status:', response.status)
+      console.log(`📡 [${timestamp}] API RESPONSE:`)
+      console.log(`  - Status: ${response.status} ${response.statusText}`)
+      console.log(`  - OK: ${response.ok}`)
+      console.log(`  - Headers:`, Object.fromEntries(response.headers.entries()))
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        console.error('API error response:', errorData)
+        console.error(`❌ [${timestamp}] API ERROR RESPONSE:`)
+        console.error(`  - Status: ${response.status} ${response.statusText}`)
+        console.error(`  - Error Data:`, errorData)
+        console.error(`  - Error Code: ${errorData.code || 'UNKNOWN'}`)
+        console.error(`  - Error Message: ${errorData.message || 'Unknown error'}`)
+        
         // Создаем объект ошибки с дополнительной информацией
         const error = new Error(errorData.message || `HTTP ${response.status}`)
         // Добавляем код ошибки в объект ошибки
@@ -51,10 +64,16 @@ class ApiClient {
       }
 
       const data = await response.json()
-      console.log('API response data:', data)
+      console.log(`✅ [${timestamp}] API SUCCESS RESPONSE:`)
+      console.log(`  - Data Type: ${Array.isArray(data) ? 'Array' : typeof data}`)
+      console.log(`  - Data Preview: ${JSON.stringify(data).substring(0, 200) + '...'}`)
       return data
     } catch (error) {
-      console.error(`API request failed: ${endpoint}`, error)
+      const errorTimestamp = new Date().toISOString()
+      console.error(`❌ [${errorTimestamp}] API REQUEST FAILED: ${endpoint}`)
+      console.error(`  - Error Type: ${error instanceof Error ? error.constructor.name : 'Unknown'}`)
+      console.error(`  - Error Message: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error(`  - Error Stack: ${error instanceof Error ? error.stack : 'No stack trace'}`)
       
       // Улучшенная обработка ошибок для продакшн-режима
       if (error instanceof Error && error.message === 'Failed to fetch') {
