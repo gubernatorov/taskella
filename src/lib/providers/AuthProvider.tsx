@@ -26,23 +26,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (hasInitialized) return
 
     const initAuth = async () => {
+      console.log('🔄 AuthProvider initAuth started')
       setHasInitialized(true)
       
       // Проверяем сохраненный токен при инициализации
       const savedToken = localStorage.getItem('auth_token')
+      console.log('🔍 Saved token exists:', !!savedToken)
+      
       if (savedToken) {
         setToken(savedToken)
+        console.log('✅ Token set in state')
         
         try {
           // Валидируем токен и получаем пользователя
+          console.log('🔍 Validating token with API...')
           const user = await authApi.getMe()
+          console.log('✅ User loaded successfully:', user?.id)
           setUser(user)
         } catch (error: any) {
-          console.error('Auth validation error:', error)
+          console.error('❌ Auth validation error:', error)
           // Проверяем, является ли ошибка ошибкой "Пользователь не найден"
           // Это может произойти после очистки БД или при первом запуске в продакшене
           if (error?.message === 'Пользователь не найден' || error?.code === 'USER_NOT_FOUND') {
-            console.log('User not found in database, clearing token and user state')
+            console.log('🧹 User not found in database, clearing token and user state')
             // Очищаем токен и состояние пользователя
             localStorage.removeItem('auth_token')
             setToken(null)
@@ -51,18 +57,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     (error?.message && (error.message.includes('Failed to fetch') ||
                                       error.message.includes('Сетевая ошибка')))) {
             // Ошибка сети или API недоступен
-            console.log('API unavailable, keeping token for retry')
+            console.log('🌐 API unavailable, keeping token for retry')
             // Не очищаем токен, просто устанавливаем isLoading в false
             // Это позволит пользователю продолжить работу с приложением
           } else {
             // Другие ошибки валидации токена
+            console.log('🧹 Other validation error, clearing token')
             localStorage.removeItem('auth_token')
             setToken(null)
             setUser(null)
           }
         }
+      } else {
+        console.log('📝 No saved token found')
       }
       
+      console.log('✅ AuthProvider initialization complete, setting isLoading to false')
       setIsLoading(false)
     }
 

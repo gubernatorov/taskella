@@ -121,6 +121,8 @@ export default function LoginPage() {
   }, [router, isDevMode])
 
   useEffect(() => {
+    console.log('🔐 Login page useEffect - HasAttempted:', hasAttemptedAuth, 'AuthError:', !!authError)
+    
     // Проверяем, запущено ли приложение в Telegram
     const webApp = window.Telegram?.WebApp
     
@@ -128,17 +130,23 @@ export default function LoginPage() {
     const token = localStorage.getItem('auth_token')
     const justAuthenticated = sessionStorage.getItem('just_authenticated') === 'true'
     
+    console.log('🔍 Login check - Token:', !!token, 'JustAuth:', justAuthenticated)
+    
     if (justAuthenticated && token) {
-      console.log('User just authenticated, redirecting to dashboard...')
+      console.log('✅ User just authenticated, redirecting to dashboard...')
       sessionStorage.removeItem('just_authenticated')
       router.push('/dashboard')
       return
     }
     
     // Предотвращаем повторные попытки аутентификации
-    if (hasAttemptedAuth) return
+    if (hasAttemptedAuth) {
+      console.log('🔄 Already attempted auth, skipping...')
+      return
+    }
     
     if (webApp?.initData && !authError) {
+      console.log('📱 Telegram WebApp detected, starting auth...')
       setIsTelegramApp(true)
       webApp.ready()
       setHasAttemptedAuth(true)
@@ -147,8 +155,8 @@ export default function LoginPage() {
       handleTelegramLogin()
     } else if (!webApp?.initData) {
       // Режим разработки - приложение открыто в обычном браузере
+      console.log('💻 Development mode detected (outside Telegram)')
       setIsDevMode(true)
-      console.log('Running in development mode (outside Telegram)')
     }
   }, [handleTelegramLogin, hasAttemptedAuth, authError, router])
 

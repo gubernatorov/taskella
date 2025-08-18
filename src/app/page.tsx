@@ -22,16 +22,26 @@ export default function HomePage() {
 
   useEffect(() => {
     // Избегаем множественных редиректов и ждем завершения загрузки
-    if (isLoading || hasRedirected) return
+    console.log('🏠 Main page useEffect - User:', !!user, 'Loading:', isLoading, 'HasRedirected:', hasRedirected)
+    
+    if (isLoading) {
+      console.log('⏳ Still loading, waiting...')
+      return
+    }
+    
+    if (hasRedirected) {
+      console.log('🔄 Already redirected, skipping...')
+      return
+    }
 
-    console.log('Main page redirect logic - User:', !!user, 'Loading:', isLoading)
+    console.log('📍 Main page redirect logic executing')
     setHasRedirected(true)
     
     if (user) {
-      console.log('Redirecting to dashboard...')
+      console.log('✅ User exists, redirecting to dashboard...')
       router.push('/dashboard')
     } else {
-      console.log('Redirecting to login...')
+      console.log('❌ No user, redirecting to login...')
       router.push('/login')
     }
   }, [user, isLoading, router, hasRedirected])

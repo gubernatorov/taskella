@@ -17,9 +17,24 @@ export default function DashboardLayout({
   const [hasRedirected, setHasRedirected] = useState(false)
 
   useEffect(() => {
-    if (!isLoading && !user && !hasRedirected) {
+    console.log('🏢 Dashboard layout useEffect - User:', !!user, 'Loading:', isLoading, 'HasRedirected:', hasRedirected)
+    
+    if (isLoading) {
+      console.log('⏳ Dashboard still loading auth...')
+      return
+    }
+    
+    if (hasRedirected) {
+      console.log('🔄 Dashboard already redirected, skipping...')
+      return
+    }
+    
+    if (!user) {
+      console.log('❌ No user in dashboard, redirecting to login...')
       setHasRedirected(true)
       router.push('/login')
+    } else {
+      console.log('✅ User exists in dashboard, staying...')
     }
   }, [user, isLoading, router, hasRedirected])
 
