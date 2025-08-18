@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/lib/hooks/useAuth'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Header } from '@/components/layout/Header'
 import { Navigation } from '@/components/layout/Navigation'
 import { Loading } from '@/components/common/Loading'
@@ -14,12 +14,14 @@ export default function DashboardLayout({
 }) {
   const { user, isLoading } = useAuth()
   const router = useRouter()
+  const [hasRedirected, setHasRedirected] = useState(false)
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!isLoading && !user && !hasRedirected) {
+      setHasRedirected(true)
       router.push('/login')
     }
-  }, [user, isLoading, router])
+  }, [user, isLoading, router, hasRedirected])
 
   if (isLoading) {
     return <Loading />
