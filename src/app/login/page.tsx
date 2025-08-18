@@ -56,6 +56,19 @@ export default function LoginPage() {
   const [authError, setAuthError] = useState<string | null>(null)
 
   const handleTelegramLogin = useCallback(async () => {
+    // Проверяем, не идет ли уже процесс аутентификации
+    if (isLoading) {
+      console.log('🔄 Authentication already in progress, skipping...')
+      return
+    }
+
+    // Проверяем, не был ли уже запущен процесс аутентификации в этой сессии
+    const authInProgress = sessionStorage.getItem('auth_in_progress')
+    if (authInProgress === 'true') {
+      console.log('🔄 Authentication already in progress (session flag), skipping...')
+      return
+    }
+
     const webApp = window.Telegram?.WebApp
     let initData = webApp?.initData
 
@@ -72,6 +85,10 @@ export default function LoginPage() {
 
     setIsLoading(true)
     setError(null)
+    
+    // Устанавливаем флаг процесса аутентификации
+    sessionStorage.setItem('auth_in_progress', 'true')
+    console.log('🚀 Authentication process started, flag set')
 
     try {
       const response = await fetch('/api/auth/telegram', {
@@ -91,12 +108,21 @@ export default function LoginPage() {
 
       const data = await response.json()
       
-      // Сохраняем токен
+      // Сохраняем токен в localStorage для клиентской части
       localStorage.setItem('auth_token', data.token)
+      
+      // Устанавливаем cookie для серверных запросов
+      document.cookie = `auth_token=${data.token}; path=/; max-age=2592000; secure; samesite=strict`
+      
       // Устанавливаем флаг недавней аутентификации
       sessionStorage.setItem('just_authenticated', 'true')
       
-      console.log('Token saved successfully, redirecting to dashboard...')
+      console.log('Token saved successfully in localStorage and cookie, redirecting to dashboard...')
+      console.log('Cookie set:', document.cookie)
+      
+      // Очищаем флаг процесса аутентификации
+      sessionStorage.removeItem('auth_in_progress')
+      console.log('✅ Authentication process completed, flag cleared')
       
       // Немедленный редирект без задержки
       router.push('/dashboard')
@@ -117,6 +143,9 @@ export default function LoginPage() {
       setAuthError(errorMessage)
     } finally {
       setIsLoading(false)
+      // Очищаем флаг процесса аутентификации в любом случае
+      sessionStorage.removeItem('auth_in_progress')
+      console.log('🔄 Authentication process ended, flag cleared')
     }
   }, [router, isDevMode])
 
@@ -161,8 +190,25 @@ export default function LoginPage() {
   }, [handleTelegramLogin, hasAttemptedAuth, authError, router])
 
   const handleDevLogin = async () => {
+    // Проверяем, не идет ли уже процесс аутентификации
+    if (isLoading) {
+      console.log('🔄 Dev authentication already in progress, skipping...')
+      return
+    }
+
+    // Проверяем, не был ли уже запущен процесс аутентификации в этой сессии
+    const authInProgress = sessionStorage.getItem('auth_in_progress')
+    if (authInProgress === 'true') {
+      console.log('🔄 Dev authentication already in progress (session flag), skipping...')
+      return
+    }
+
     setIsLoading(true)
     setError(null)
+    
+    // Устанавливаем флаг процесса аутентификации
+    sessionStorage.setItem('auth_in_progress', 'true')
+    console.log('🚀 Dev authentication process started, flag set')
 
     try {
       // Для разработки используем тестовые данные
@@ -175,10 +221,23 @@ export default function LoginPage() {
 
       await devLogin(testUser)
       
+      // Получаем токен из localStorage (devLogin сохраняет его там)
+      const token = localStorage.getItem('auth_token')
+      
+      // Устанавливаем cookie для серверных запросов
+      if (token) {
+        document.cookie = `auth_token=${token}; path=/; max-age=2592000; secure; samesite=strict`
+      }
+      
       // Устанавливаем флаг недавней аутентификации
       sessionStorage.setItem('just_authenticated', 'true')
       
-      console.log('Dev login successful, redirecting to dashboard...')
+      console.log('Dev login successful, token saved in localStorage and cookie, redirecting to dashboard...')
+      console.log('Cookie set:', document.cookie)
+      
+      // Очищаем флаг процесса аутентификации
+      sessionStorage.removeItem('auth_in_progress')
+      console.log('✅ Dev authentication process completed, flag cleared')
       
       // Немедленный редирект без задержки
       router.push('/dashboard')
@@ -195,6 +254,9 @@ export default function LoginPage() {
       }
     } finally {
       setIsLoading(false)
+      // Очищаем флаг процесса аутентификации в любом случае
+      sessionStorage.removeItem('auth_in_progress')
+      console.log('🔄 Dev authentication process ended, flag cleared')
     }
   }
 

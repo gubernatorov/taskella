@@ -3,19 +3,34 @@ const fs = require('fs');
 const path = require('path');
 
 async function initDatabase() {
-  console.log('🚀 Инициализация базы данных...');
+  console.log('🚀 Initializing database...');
   
   try {
-    // Импортируем функцию инициализации
-    const { initializeDatabase } = require('../src/lib/db/init.ts');
+    // Check if database file exists
+    const dbPath = path.join(__dirname, '..', 'sqlite.db');
+    if (fs.existsSync(dbPath)) {
+      console.log('📄 Database file already exists, skipping initialization...');
+      return;
+    }
+
+    console.log('📂 Database file not found, initializing...');
     
-    await initializeDatabase();
-    console.log('✅ База данных успешно инициализирована!');
+    // Run the database initialization using npx tsx
+    const initCommand = 'npx tsx src/lib/db/init.ts';
+    console.log(`🔄 Running: ${initCommand}`);
+    
+    execSync(initCommand, { 
+      stdio: 'inherit',
+      cwd: path.join(__dirname, '..')
+    });
+    
+    console.log('✅ Database successfully initialized!');
   } catch (error) {
-    console.error('❌ Ошибка инициализации базы данных:', error);
-    process.exit(1);
+    console.error('❌ Database initialization error:', error.message);
+    console.log('⚠️ Will try to initialize at runtime...');
+    // Don't exit, let the application try to initialize at runtime
   }
 }
 
-// Запускаем инициализацию
+// Run initialization
 initDatabase();

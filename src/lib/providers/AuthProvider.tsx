@@ -132,8 +132,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(response.token)
       localStorage.setItem('auth_token', response.token)
       
-      // Устанавливаем флаг недавней аутентификации
+      // Устанавливаем cookie для серверных запросов
       if (typeof window !== 'undefined') {
+        document.cookie = `auth_token=${response.token}; path=/; max-age=2592000; secure; samesite=strict`
+        console.log(`🍪 [${timestamp}] Cookie set for auth token`)
         sessionStorage.setItem('just_authenticated', 'true')
         console.log(`🎫 [${timestamp}] Just authenticated flag set`)
       }
@@ -156,10 +158,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null)
     localStorage.removeItem('auth_token')
     
+    // Очищаем cookie
+    if (typeof window !== 'undefined') {
+      document.cookie = 'auth_token=; path=/; max-age=0; secure; samesite=strict'
+      console.log(`🍪 [${timestamp}] Cookie cleared`)
+    }
+    
     console.log(`✅ [${timestamp}] LOGOUT COMPLETED`)
     console.log(`  - User state cleared`)
     console.log(`  - Token state cleared`)
     console.log(`  - LocalStorage cleared`)
+    console.log(`  - Cookie cleared`)
   }
 
   return (

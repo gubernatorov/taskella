@@ -38,7 +38,40 @@ export async function GET(request: NextRequest) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any
       
       // Проверяем, существует ли пользователь
-      let user = await userRepo.findById(decoded.userId)
+      let user = null
+      try {
+        user = await userRepo.findById(decoded.userId)
+      } catch (dbError: any) {
+        console.log(`⚠️ [${timestamp}] Database query error:`, dbError.message)
+        
+        // Если ошибка связана с отсутствием таблицы, пробуем инициализировать БД
+        if (dbError.message && dbError.message.includes('no such table')) {
+          console.log(`🔄 [${timestamp}] Tables not found, attempting database initialization...`)
+          
+          try {
+            const { initializeDatabase } = await import('@/lib/db/init')
+            await initializeDatabase({ force: false, seedData: true, createIndexes: true })
+            ;(global as any).__db_initialized = true
+            console.log(`✅ [${timestamp}] Database initialized successfully`)
+            
+            // Повторно пытаемся найти пользователя после инициализации
+            user = await userRepo.findById(decoded.userId)
+          } catch (initError: any) {
+            console.error(`❌ [${timestamp}] Failed to initialize database:`, initError.message)
+            return NextResponse.json(
+              { message: 'Ошибка инициализации базы данных', code: 'DB_INIT_ERROR' },
+              { status: 503 }
+            )
+          }
+        } else {
+          // Другие ошибки базы данных
+          console.error(`❌ [${timestamp}] Database error:`, dbError.message)
+          return NextResponse.json(
+            { message: 'Ошибка базы данных', code: 'DATABASE_ERROR' },
+            { status: 500 }
+          )
+        }
+      }
       
       // Если пользователь не найден и мы в продакшене, возможно база данных не инициализирована
       if (!user && process.env.NODE_ENV === 'production') {
@@ -60,10 +93,9 @@ export async function GET(request: NextRequest) {
             user = await userRepo.findById(decoded.userId)
           } catch (initError) {
             console.error('Failed to initialize database:', initError)
-            return NextResponse.json(
-              { message: 'Ошибка инициализации базы данных', code: 'DB_INIT_ERROR' },
-              { status: 503 }
-            )
+            console.log(`⚠️ [${timestamp}] Database initialization failed, but user may exist. Trying to continue...`)
+            // Не возвращаем ошибку, а пытаемся продолжить
+            // Возможно, пользователь уже существует в базе данных
           }
         } else {
           console.log('⏭️ DB already initialized, user still not found')
