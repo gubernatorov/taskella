@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/hooks/useAuth'
@@ -52,7 +52,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isTelegramApp, setIsTelegramApp] = useState(false)
   const [isDevMode, setIsDevMode] = useState(false)
-  const [hasAttemptedAuth, setHasAttemptedAuth] = useState(false)
+  const authAttemptedRef = useRef(false)
   const [authError, setAuthError] = useState<string | null>(null)
 
   const handleTelegramLogin = useCallback(async () => {
@@ -126,9 +126,9 @@ export default function LoginPage() {
       
       // Добавляем небольшую задержку перед редиректом, чтобы cookie успел установиться
       setTimeout(() => {
-        // Немедленный редирект без задержки
-        router.push('/dashboard')
-      }, 100)
+        // Используем replace вместо push, чтобы избежать возврата на страницу логина
+        router.replace('/dashboard')
+      }, 200)
     } catch (err) {
       console.error('Login error:', err)
       const errorMessage = err instanceof Error ? err.message : 'An error occurred during login'
@@ -138,41 +138,53 @@ export default function LoginPage() {
         setError('Сервер недоступен. Пожалуйста, попробуйте позже.')
       } else if (errorMessage.includes('Пользователь не найден') || (err as any)?.code === 'USER_NOT_FOUND') {
         setError('База данных не инициализирована. Пожалуйста, подождите несколько минут и попробуйте снова.')
-        setHasAttemptedAuth(true)
       } else {
         setError(errorMessage)
       }
       
       setAuthError(errorMessage)
+      // Очищаем флаг процесса аутентификации при ошибке
+      sessionStorage.removeItem('auth_in_progress')
     } finally {
       setIsLoading(false)
-      // Очищаем флаг процесса аутентификации в любом случае
-      sessionStorage.removeItem('auth_in_progress')
-      console.log('🔄 Authentication process ended, flag cleared')
     }
   }, [router, isDevMode])
 
   useEffect(() => {
-    console.log('🔐 Login page useEffect - HasAttempted:', hasAttemptedAuth, 'AuthError:', !!authError)
-    
-    // Проверяем, запущено ли приложение в Telegram
-    const webApp = window.Telegram?.WebApp
+    console.log('🔐 Login page useEffect - AuthAttempted:', authAttemptedRef.current, 'AuthError:', !!authError)
     
     // Проверяем, не был ли пользователь только что аутентифицирован
     const token = localStorage.getItem('auth_token')
     const justAuthenticated = sessionStorage.getItem('just_authenticated') === 'true'
+    const authInProgress = sessionStorage.getItem('auth_in_progress') === 'true'
     
-    console.log('🔍 Login check - Token:', !!token, 'JustAuth:', justAuthenticated)
+    console.log('🔍 Login check - Token:', !!token, 'JustAuth:', justAuthenticated, 'InProgress:', authInProgress)
     
+    // Если есть токен и флаг недавней аутентификации, сразу редиректим
     if (justAuthenticated && token) {
       console.log('✅ User just authenticated, redirecting to dashboard...')
-      sessionStorage.removeItem('just_authenticated')
-      router.push('/dashboard')
+      router.replace('/dashboard')
       return
     }
     
+    // Если процесс аутентификации уже идет, ждем
+    if (authInProgress) {
+      console.log('⏳ Authentication in progress, waiting...')
+      return
+    }
+    
+    // Если есть токен без флага недавней аутентификации, тоже редиректим
+    if (token && !authError) {
+      console.log('✅ Token found, redirecting to dashboard...')
+      router.replace('/dashboard')
+      return
+    }
+    
+    // Проверяем, запущено ли приложение в Telegram
+    const webApp = window.Telegram?.WebApp
+    
     // Предотвращаем повторные попытки аутентификации
-    if (hasAttemptedAuth) {
+    if (authAttemptedRef.current) {
       console.log('🔄 Already attempted auth, skipping...')
       return
     }
@@ -181,16 +193,19 @@ export default function LoginPage() {
       console.log('📱 Telegram WebApp detected, starting auth...')
       setIsTelegramApp(true)
       webApp.ready()
-      setHasAttemptedAuth(true)
+      authAttemptedRef.current = true
       
-      // Автоматический вход для Telegram пользователей
-      handleTelegramLogin()
+      // Добавляем небольшую задержку перед автоматической аутентификацией
+      // чтобы дать время WebApp полностью инициализироваться
+      setTimeout(() => {
+        handleTelegramLogin()
+      }, 100)
     } else if (!webApp?.initData) {
       // Режим разработки - приложение открыто в обычном браузере
       console.log('💻 Development mode detected (outside Telegram)')
       setIsDevMode(true)
     }
-  }, [handleTelegramLogin, hasAttemptedAuth, authError, router])
+  }, [handleTelegramLogin, authError, router])
 
   const handleDevLogin = async () => {
     // Проверяем, не идет ли уже процесс аутентификации
@@ -244,9 +259,9 @@ export default function LoginPage() {
       
       // Добавляем небольшую задержку перед редиректом, чтобы cookie успел установиться
       setTimeout(() => {
-        // Немедленный редирект без задержки
-        router.push('/dashboard')
-      }, 100)
+        // Используем replace вместо push
+        router.replace('/dashboard')
+      }, 200)
     } catch (err) {
       console.error('Dev login error:', err)
       
@@ -258,11 +273,24 @@ export default function LoginPage() {
       } else {
         setError('Ошибка входа: ' + (err instanceof Error ? err.message : 'Неизвестная ошибка'))
       }
+      
+      // Очищаем флаг процесса аутентификации при ошибке
+      sessionStorage.removeItem('auth_in_progress')
     } finally {
       setIsLoading(false)
-      // Очищаем флаг процесса аутентификации в любом случае
-      sessionStorage.removeItem('auth_in_progress')
-      console.log('🔄 Dev authentication process ended, flag cleared')
+    }
+  }
+
+  const handleRetryAuth = () => {
+    setError(null)
+    setAuthError(null)
+    authAttemptedRef.current = false
+    // Очищаем флаги сессии
+    sessionStorage.removeItem('auth_in_progress')
+    sessionStorage.removeItem('just_authenticated')
+    
+    if (isTelegramApp) {
+      handleTelegramLogin()
     }
   }
 
@@ -298,13 +326,9 @@ export default function LoginPage() {
         {error && (
           <div className="rounded-md bg-red-50 p-4">
             <p className="text-sm text-red-800">{error}</p>
-            {(error.includes('Пользователь не найден') || error.includes('USER_NOT_FOUND')) && (
+            {(error.includes('Пользователь не найден') || error.includes('USER_NOT_FOUND') || error.includes('База данных')) && (
               <Button
-                onClick={() => {
-                  setError(null)
-                  setAuthError(null)
-                  setHasAttemptedAuth(false)
-                }}
+                onClick={handleRetryAuth}
                 className="mt-2 w-full bg-red-600 hover:bg-red-700"
               >
                 Попробовать войти снова

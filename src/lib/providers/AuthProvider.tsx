@@ -29,10 +29,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔄 AuthProvider initAuth started')
       setHasInitialized(true)
       
+      // Проверяем, не находимся ли мы в процессе аутентификации
+      const authInProgress = typeof window !== 'undefined' ? sessionStorage.getItem('auth_in_progress') === 'true' : false
+      if (authInProgress) {
+        console.log('🎫 Authentication in progress, skipping validation')
+        setIsLoading(false)
+        return
+      }
+      
       // Проверяем, не был ли пользователь только что аутентифицирован
       const justAuthenticated = typeof window !== 'undefined' ? sessionStorage.getItem('just_authenticated') === 'true' : false
       if (justAuthenticated) {
         console.log('🎫 User just authenticated, skipping validation')
+        // Загружаем токен из localStorage
+        const savedToken = localStorage.getItem('auth_token')
+        if (savedToken) {
+          setToken(savedToken)
+          // Пытаемся загрузить пользователя, но не блокируем если не получится
+          try {
+            const user = await authApi.getMe()
+            setUser(user)
+          } catch (error) {
+            console.log('⚠️ Could not load user data, will retry later')
+          }
+        }
+        setIsLoading(false)
+        return
+      }
+      
+      // Проверяем, находимся ли мы в Telegram WebApp
+      const isTelegramApp = typeof window !== 'undefined' && window.Telegram?.WebApp?.initData
+      
+      // Если мы в Telegram WebApp и нет токена, не пытаемся валидировать
+      // Пусть страница логина обработает аутентификацию
+      if (isTelegramApp && !localStorage.getItem('auth_token')) {
+        console.log('📱 Telegram WebApp detected without token, skipping validation')
         setIsLoading(false)
         return
       }
@@ -117,7 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setTimeout(() => {
           sessionStorage.removeItem('just_authenticated')
           console.log(`🧹 [${timestamp}] Just authenticated flag cleared after timeout`)
-        }, 1000)
+        }, 2000)
       }
     } catch (error: any) {
       const errorTimestamp = new Date().toISOString()
@@ -159,7 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setTimeout(() => {
           sessionStorage.removeItem('just_authenticated')
           console.log(`🧹 [${timestamp}] Just authenticated flag cleared after timeout`)
-        }, 1000)
+        }, 2000)
       }
     } catch (error: any) {
       const errorTimestamp = new Date().toISOString()
@@ -184,6 +215,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       document.cookie = 'auth_token=; path=/; max-age=0; secure; samesite=strict'
       console.log(`🍪 [${timestamp}] Cookie cleared`)
+      // Очищаем все флаги сессии
+      sessionStorage.removeItem('just_authenticated')
+      sessionStorage.removeItem('auth_in_progress')
     }
     
     console.log(`✅ [${timestamp}] LOGOUT COMPLETED`)
@@ -191,6 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log(`  - Token state cleared`)
     console.log(`  - LocalStorage cleared`)
     console.log(`  - Cookie cleared`)
+    console.log(`  - Session flags cleared`)
   }
 
   return (
