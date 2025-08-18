@@ -124,8 +124,11 @@ export default function LoginPage() {
       sessionStorage.removeItem('auth_in_progress')
       console.log('✅ Authentication process completed, flag cleared')
       
-      // Немедленный редирект без задержки
-      router.push('/dashboard')
+      // Добавляем небольшую задержку перед редиректом, чтобы cookie успел установиться
+      setTimeout(() => {
+        // Немедленный редирект без задержки
+        router.push('/dashboard')
+      }, 100)
     } catch (err) {
       console.error('Login error:', err)
       const errorMessage = err instanceof Error ? err.message : 'An error occurred during login'
@@ -239,8 +242,11 @@ export default function LoginPage() {
       sessionStorage.removeItem('auth_in_progress')
       console.log('✅ Dev authentication process completed, flag cleared')
       
-      // Немедленный редирект без задержки
-      router.push('/dashboard')
+      // Добавляем небольшую задержку перед редиректом, чтобы cookie успел установиться
+      setTimeout(() => {
+        // Немедленный редирект без задержки
+        router.push('/dashboard')
+      }, 100)
     } catch (err) {
       console.error('Dev login error:', err)
       
