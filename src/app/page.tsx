@@ -21,34 +21,18 @@ export default function HomePage() {
   }, [webApp])
 
   useEffect(() => {
-    // Избегаем множественных редиректов
-    if (!isLoading && !hasRedirected) {
-      console.log('Main page redirect logic - User:', !!user, 'Loading:', isLoading)
-      setHasRedirected(true)
-      
-      // Добавляем небольшую задержку для стабилизации состояния
-      setTimeout(() => {
-        if (user) {
-          console.log('Redirecting to dashboard...')
-          router.push('/dashboard')
-        } else {
-          // Проверяем, есть ли токен в localStorage (возможно, только что установлен)
-          const token = localStorage.getItem('auth_token')
-          if (token) {
-            console.log('Token found but user not loaded yet, waiting...')
-            // Даем дополнительное время для загрузки пользователя
-            setTimeout(() => {
-              if (!user) {
-                console.log('User still not loaded, redirecting to login...')
-                router.push('/login')
-              }
-            }, 500)
-          } else {
-            console.log('Redirecting to login...')
-            router.push('/login')
-          }
-        }
-      }, 50)
+    // Избегаем множественных редиректов и ждем завершения загрузки
+    if (isLoading || hasRedirected) return
+
+    console.log('Main page redirect logic - User:', !!user, 'Loading:', isLoading)
+    setHasRedirected(true)
+    
+    if (user) {
+      console.log('Redirecting to dashboard...')
+      router.push('/dashboard')
+    } else {
+      console.log('Redirecting to login...')
+      router.push('/login')
     }
   }, [user, isLoading, router, hasRedirected])
 

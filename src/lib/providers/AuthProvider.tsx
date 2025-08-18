@@ -25,29 +25,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Предотвращаем повторную инициализацию
     if (hasInitialized) return
 
-    setHasInitialized(true)
-    
-    // Проверяем сохраненный токен при инициализации
-    const savedToken = localStorage.getItem('auth_token')
-    if (savedToken) {
-      setToken(savedToken)
-      // Валидируем токен и получаем пользователя
-      authApi.getMe()
-        .then((user) => {
+    const initAuth = async () => {
+      setHasInitialized(true)
+      
+      // Проверяем сохраненный токен при инициализации
+      const savedToken = localStorage.getItem('auth_token')
+      if (savedToken) {
+        setToken(savedToken)
+        
+        try {
+          // Валидируем токен и получаем пользователя
+          const user = await authApi.getMe()
           setUser(user)
-        })
-        .catch((error) => {
+        } catch (error: any) {
           console.error('Auth validation error:', error)
           // Проверяем, является ли ошибка ошибкой "Пользователь не найден"
           // Это может произойти после очистки БД или при первом запуске в продакшене
-          if (error.message === 'Пользователь не найден' || error.code === 'USER_NOT_FOUND') {
+          if (error?.message === 'Пользователь не найден' || error?.code === 'USER_NOT_FOUND') {
             console.log('User not found in database, clearing token and user state')
             // Очищаем токен и состояние пользователя
             localStorage.removeItem('auth_token')
             setToken(null)
             setUser(null)
-          } else if (error.code === 'NETWORK_ERROR' || error.isNetworkError ||
-                    (error.message && (error.message.includes('Failed to fetch') ||
+          } else if (error?.code === 'NETWORK_ERROR' || error?.isNetworkError ||
+                    (error?.message && (error.message.includes('Failed to fetch') ||
                                       error.message.includes('Сетевая ошибка')))) {
             // Ошибка сети или API недоступен
             console.log('API unavailable, keeping token for retry')
@@ -59,13 +60,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setToken(null)
             setUser(null)
           }
-        })
-        .finally(() => {
-          setIsLoading(false)
-        })
-    } else {
+        }
+      }
+      
       setIsLoading(false)
     }
+
+    initAuth()
   }, [hasInitialized])
 
   const login = async (initData: string) => {

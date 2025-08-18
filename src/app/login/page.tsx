@@ -98,10 +98,8 @@ export default function LoginPage() {
       
       console.log('Token saved successfully, redirecting to dashboard...')
       
-      // Добавляем небольшую задержку перед редиректом
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 100)
+      // Немедленный редирект без задержки
+      router.push('/dashboard')
     } catch (err) {
       console.error('Login error:', err)
       const errorMessage = err instanceof Error ? err.message : 'An error occurred during login'
@@ -137,7 +135,10 @@ export default function LoginPage() {
       return
     }
     
-    if (webApp?.initData && !hasAttemptedAuth && !authError) {
+    // Предотвращаем повторные попытки аутентификации
+    if (hasAttemptedAuth) return
+    
+    if (webApp?.initData && !authError) {
       setIsTelegramApp(true)
       webApp.ready()
       setHasAttemptedAuth(true)
@@ -171,10 +172,8 @@ export default function LoginPage() {
       
       console.log('Dev login successful, redirecting to dashboard...')
       
-      // Добавляем небольшую задержку перед редиректом
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 100)
+      // Немедленный редирект без задержки
+      router.push('/dashboard')
     } catch (err) {
       console.error('Dev login error:', err)
       
