@@ -40,9 +40,20 @@ export function middleware(request: NextRequest) {
     console.log(`🔑 Auth Header: ${authHeader ? 'Present' : 'Missing'}`)
     console.log(`🍪 Cookie Header: ${cookieHeader ? 'Present' : 'Missing'}`)
     
+    let hasAuthToken = false
     if (cookieHeader) {
-      const hasAuthToken = cookieHeader.includes('auth_token')
+      hasAuthToken = cookieHeader.includes('auth_token')
       console.log(`🎫 Auth Token in Cookie: ${hasAuthToken ? 'Present' : 'Missing'}`)
+    }
+    
+    // Проверяем флаг недавней аутентификации
+    const justAuthenticated = request.headers.get('x-just-authenticated') === 'true'
+    console.log(`🎫 Just Authenticated Flag: ${justAuthenticated ? 'Present' : 'Missing'}`)
+    
+    // Если нет токена и нет флага недавней аутентификации, перенаправляем на страницу входа
+    if (!hasAuthToken && !justAuthenticated && !authHeader) {
+      console.log(`🔄 No auth token found, redirecting to login...`)
+      return NextResponse.redirect(new URL('/login', request.url))
     }
   }
   

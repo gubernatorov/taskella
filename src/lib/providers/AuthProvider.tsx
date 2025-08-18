@@ -29,6 +29,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔄 AuthProvider initAuth started')
       setHasInitialized(true)
       
+      // Проверяем, не был ли пользователь только что аутентифицирован
+      const justAuthenticated = typeof window !== 'undefined' ? sessionStorage.getItem('just_authenticated') === 'true' : false
+      if (justAuthenticated) {
+        console.log('🎫 User just authenticated, skipping validation')
+        setIsLoading(false)
+        return
+      }
+      
       // Проверяем сохраненный токен при инициализации
       const savedToken = localStorage.getItem('auth_token')
       console.log('🔍 Saved token exists:', !!savedToken)
@@ -98,10 +106,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(response.token)
       localStorage.setItem('auth_token', response.token)
       
-      // Устанавливаем флаг недавней аутентификации
+      // Устанавливаем cookie для серверных запросов
       if (typeof window !== 'undefined') {
+        document.cookie = `auth_token=${response.token}; path=/; max-age=2592000; secure; samesite=strict`
+        console.log(`🍪 [${timestamp}] Cookie set for auth token`)
         sessionStorage.setItem('just_authenticated', 'true')
         console.log(`🎫 [${timestamp}] Just authenticated flag set`)
+        
+        // Очищаем флаг через небольшую задержку, чтобы избежать циклов
+        setTimeout(() => {
+          sessionStorage.removeItem('just_authenticated')
+          console.log(`🧹 [${timestamp}] Just authenticated flag cleared after timeout`)
+        }, 1000)
       }
     } catch (error: any) {
       const errorTimestamp = new Date().toISOString()
@@ -138,6 +154,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log(`🍪 [${timestamp}] Cookie set for auth token`)
         sessionStorage.setItem('just_authenticated', 'true')
         console.log(`🎫 [${timestamp}] Just authenticated flag set`)
+        
+        // Очищаем флаг через небольшую задержку, чтобы избежать циклов
+        setTimeout(() => {
+          sessionStorage.removeItem('just_authenticated')
+          console.log(`🧹 [${timestamp}] Just authenticated flag cleared after timeout`)
+        }, 1000)
       }
     } catch (error: any) {
       const errorTimestamp = new Date().toISOString()

@@ -30,10 +30,9 @@ export default function DashboardLayout({
     }
     
     if (!user) {
-      console.log('❌ No user in dashboard, redirecting to main page...')
+      console.log('❌ No user in dashboard, redirecting to login page...')
       setHasRedirected(true)
-      // Временно редиректим на главную страницу вместо /login для избежания цикла
-      router.push('/')
+      router.push('/login')
     } else {
       console.log('✅ User exists in dashboard, staying...')
     }
