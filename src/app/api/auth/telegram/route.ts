@@ -101,14 +101,24 @@ function validateTelegramData(initData: string, botToken: string): TelegramUser 
 
 export async function POST(request: NextRequest) {
   try {
-    // Инициализируем базу данных если нужно (только в продакшн-режиме)
+    // Инициализируем базу данных если нужно (только в продакшн-режиме и только один раз)
     if (process.env.NODE_ENV === 'production') {
-      try {
-        const { initializeDatabase } = await import('@/lib/db/init')
-        await initializeDatabase({ force: false, seedData: true, createIndexes: true })
-      } catch (dbError) {
-        console.warn('Database initialization warning:', dbError)
-        // Продолжаем выполнение, возможно БД уже инициализирована
+      // Проверяем, была ли уже инициализация в этой сессии
+      const isInitialized = (global as any).__db_initialized
+      if (!isInitialized) {
+        console.log('🔄 First time DB initialization...')
+        try {
+          const { initializeDatabase } = await import('@/lib/db/init')
+          await initializeDatabase({ force: false, seedData: true, createIndexes: true })
+          // Помечаем как инициализированную
+          ;(global as any).__db_initialized = true
+          console.log('✅ DB initialization completed and marked')
+        } catch (dbError) {
+          console.warn('Database initialization warning:', dbError)
+          // Продолжаем выполнение, возможно БД уже инициализирована
+        }
+      } else {
+        console.log('⏭️ DB already initialized, skipping...')
       }
     }
 
