@@ -14,6 +14,17 @@ export function middleware(request: NextRequest) {
   console.log(`📱 User-Agent: ${userAgent}`)
   console.log(`🔗 Referer: ${referer}`)
   
+  // Проверяем, является ли это запросом от Telegram Mini Apps
+  const isTelegram = userAgent.includes('Telegram') || userAgent.includes('t.me')
+  
+  // ДЛЯ TELEGRAM MINI APPS: ПОЛНОСТЬЮ ОТКЛЮЧАЕМ ВСЮ СЕРВЕРНУЮ ЛОГИКУ АУТЕНТИФИКАЦИИ
+  // Вся аутентификация будет происходить ТОЛЬКО на клиентской стороне
+  if (isTelegram) {
+    console.log(`📱 Telegram Mini Apps request detected - completely bypassing server-side auth logic`)
+    return NextResponse.next()
+  }
+  
+  // Для всех остальных запросов (не Telegram) оставляем базовую логику
   // Проверяем, является ли это запросом к API аутентификации
   if (request.nextUrl.pathname.startsWith('/api/auth')) {
     console.log(`🔐 Auth API request detected: ${url}`)
@@ -29,9 +40,15 @@ export function middleware(request: NextRequest) {
     })
   }
   
-  // Логируем запросы к защищенным страницам
+  // Для API запросов всегда пропускаем
+  if (url.startsWith('/api/')) {
+    console.log(`🔄 API request detected, allowing access...`)
+    return NextResponse.next()
+  }
+  
+  // Для защищенных страниц (только для не-Telegram запросов)
   if (url.startsWith('/dashboard') || url.startsWith('/tasks') || url.startsWith('/projects')) {
-    console.log(`🛡️ Protected page access: ${url}`)
+    console.log(`🛡️ Protected page access (non-Telegram): ${url}`)
     
     // Проверяем наличие токена авторизации
     const authHeader = request.headers.get('authorization')
@@ -59,31 +76,12 @@ export function middleware(request: NextRequest) {
     }
     
     // Проверяем, не является ли это запросом к главной странице или странице входа
-    // Это предотвращает бесконечный редирект при первом запуске
     if (url === '/' || url === '/login') {
       console.log(`🔄 Skipping redirect for ${url} page...`)
       return NextResponse.next()
     }
     
-    // Для продакшн-режима: проверяем User-Agent для Telegram
-    const userAgent = request.headers.get('user-agent') || ''
-    const isTelegram = userAgent.includes('Telegram') || userAgent.includes('t.me')
-    
-    // РАДИКАЛЬНОЕ ИЗМЕНЕНИЕ: Для Telegram Mini Apps полностью отключаем серверную проверку аутентификации
-    // Вся логика аутентификации будет работать на клиентской стороне
-    if (isTelegram) {
-      console.log(`📱 Telegram request detected, bypassing server-side auth check...`)
-      return NextResponse.next()
-    }
-    
-    // Для API запросов всегда пропускаем, чтобы позволить клиенту обрабатывать аутентификацию
-    if (url.startsWith('/api/')) {
-      console.log(`🔄 API request detected, allowing access...`)
-      return NextResponse.next()
-    }
-    
     // Если нет токена ни в cookie, ни в заголовках, перенаправляем на страницу входа
-    // (только для не-Telegram запросов)
     console.log(`🔄 No auth token found, redirecting to login...`)
     return NextResponse.redirect(new URL('/login', request.url))
   }

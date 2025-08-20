@@ -53,21 +53,9 @@ export default function LoginPage() {
   const [isTelegramApp, setIsTelegramApp] = useState(false)
   const [isDevMode, setIsDevMode] = useState(false)
   const authAttemptedRef = useRef(false)
-  const [authError, setAuthError] = useState<string | null>(null)
 
   const handleTelegramLogin = useCallback(async () => {
-    // Проверяем, не идет ли уже процесс аутентификации
-    if (isLoading) {
-      console.log('🔄 Authentication already in progress, skipping...')
-      return
-    }
-
-    // Проверяем, не был ли уже запущен процесс аутентификации в этой сессии
-    const authInProgress = sessionStorage.getItem('auth_in_progress')
-    if (authInProgress === 'true') {
-      console.log('🔄 Authentication already in progress (session flag), skipping...')
-      return
-    }
+    if (isLoading) return
 
     const webApp = window.Telegram?.WebApp
     let initData = webApp?.initData
@@ -91,10 +79,6 @@ export default function LoginPage() {
 
     setIsLoading(true)
     setError(null)
-    
-    // Устанавливаем флаг процесса аутентификации
-    sessionStorage.setItem('auth_in_progress', 'true')
-    console.log('🚀 Authentication process started, flag set')
 
     try {
       const response = await fetch('/api/auth/telegram', {
@@ -120,26 +104,16 @@ export default function LoginPage() {
       // Устанавливаем cookie для серверных запросов
       document.cookie = `auth_token=${data.token}; path=/; max-age=2592000; secure; samesite=lax`
       
-      // Устанавливаем флаг недавней аутентификации
-      sessionStorage.setItem('just_authenticated', 'true')
+      console.log('Token saved successfully, redirecting to dashboard...')
       
-      console.log('Token saved successfully in localStorage and cookie, redirecting to dashboard...')
-      console.log('Cookie set:', document.cookie)
-      
-      // Очищаем флаг процесса аутентификации
-      sessionStorage.removeItem('auth_in_progress')
-      console.log('✅ Authentication process completed, flag cleared')
-      
-      // Добавляем небольшую задержку перед редиректом, чтобы cookie успел установиться
+      // Небольшая задержка перед редиректом, чтобы cookie успел установиться
       setTimeout(() => {
-        // Используем replace вместо push, чтобы избежать возврата на страницу логина
         router.replace('/dashboard')
       }, 200)
     } catch (err) {
       console.error('Login error:', err)
       const errorMessage = err instanceof Error ? err.message : 'An error occurred during login'
       
-      // Улучшенная обработка ошибок для продакшн-режима
       if ((err as any)?.code === 'NETWORK_ERROR' || (err as any)?.isNetworkError) {
         setError('Сервер недоступен. Пожалуйста, попробуйте позже.')
       } else if (errorMessage.includes('Пользователь не найден') || (err as any)?.code === 'USER_NOT_FOUND') {
@@ -147,40 +121,21 @@ export default function LoginPage() {
       } else {
         setError(errorMessage)
       }
-      
-      setAuthError(errorMessage)
-      // Очищаем флаг процесса аутентификации при ошибке
-      sessionStorage.removeItem('auth_in_progress')
     } finally {
       setIsLoading(false)
     }
-  }, [router, isDevMode])
+  }, [router, isDevMode, isLoading])
 
   useEffect(() => {
-    console.log('🔐 Login page useEffect - AuthAttempted:', authAttemptedRef.current, 'AuthError:', !!authError)
+    console.log('🔐 Login page useEffect - AuthAttempted:', authAttemptedRef.current)
     
-    // Проверяем, не был ли пользователь только что аутентифицирован
+    // Проверяем наличие токена в localStorage
     const token = localStorage.getItem('auth_token')
-    const justAuthenticated = sessionStorage.getItem('just_authenticated') === 'true'
-    const authInProgress = sessionStorage.getItem('auth_in_progress') === 'true'
     
-    console.log('🔍 Login check - Token:', !!token, 'JustAuth:', justAuthenticated, 'InProgress:', authInProgress)
+    console.log('🔍 Login check - Token:', !!token)
     
-    // Если есть токен и флаг недавней аутентификации, сразу редиректим
-    if (justAuthenticated && token) {
-      console.log('✅ User just authenticated, redirecting to dashboard...')
-      router.replace('/dashboard')
-      return
-    }
-    
-    // Если процесс аутентификации уже идет, ждем
-    if (authInProgress) {
-      console.log('⏳ Authentication in progress, waiting...')
-      return
-    }
-    
-    // Если есть токен без флага недавней аутентификации, тоже редиректим
-    if (token && !authError) {
+    // Если есть токен, сразу редиректим на dashboard
+    if (token) {
       console.log('✅ Token found, redirecting to dashboard...')
       router.replace('/dashboard')
       return
@@ -195,14 +150,13 @@ export default function LoginPage() {
       return
     }
     
-    if (webApp?.initData && !authError) {
+    if (webApp?.initData) {
       console.log('📱 Telegram WebApp detected, starting auth...')
       setIsTelegramApp(true)
       webApp.ready()
       authAttemptedRef.current = true
       
-      // Добавляем небольшую задержку перед автоматической аутентификацией
-      // чтобы дать время WebApp полностью инициализироваться
+      // Небольшая задержка перед автоматической аутентификацией
       setTimeout(() => {
         handleTelegramLogin()
       }, 100)
@@ -219,28 +173,13 @@ export default function LoginPage() {
         setError('Пожалуйста, откройте приложение через Telegram бот для использования всех функций.')
       }
     }
-  }, [handleTelegramLogin, authError, router])
+  }, [handleTelegramLogin, router])
 
   const handleDevLogin = async () => {
-    // Проверяем, не идет ли уже процесс аутентификации
-    if (isLoading) {
-      console.log('🔄 Dev authentication already in progress, skipping...')
-      return
-    }
-
-    // Проверяем, не был ли уже запущен процесс аутентификации в этой сессии
-    const authInProgress = sessionStorage.getItem('auth_in_progress')
-    if (authInProgress === 'true') {
-      console.log('🔄 Dev authentication already in progress (session flag), skipping...')
-      return
-    }
+    if (isLoading) return
 
     setIsLoading(true)
     setError(null)
-    
-    // Устанавливаем флаг процесса аутентификации
-    sessionStorage.setItem('auth_in_progress', 'true')
-    console.log('🚀 Dev authentication process started, flag set')
 
     try {
       // Для разработки используем тестовые данные
@@ -261,25 +200,15 @@ export default function LoginPage() {
         document.cookie = `auth_token=${token}; path=/; max-age=2592000; secure; samesite=lax`
       }
       
-      // Устанавливаем флаг недавней аутентификации
-      sessionStorage.setItem('just_authenticated', 'true')
+      console.log('Dev login successful, redirecting to dashboard...')
       
-      console.log('Dev login successful, token saved in localStorage and cookie, redirecting to dashboard...')
-      console.log('Cookie set:', document.cookie)
-      
-      // Очищаем флаг процесса аутентификации
-      sessionStorage.removeItem('auth_in_progress')
-      console.log('✅ Dev authentication process completed, flag cleared')
-      
-      // Добавляем небольшую задержку перед редиректом, чтобы cookie успел установиться
+      // Небольшая задержка перед редиректом
       setTimeout(() => {
-        // Используем replace вместо push
         router.replace('/dashboard')
       }, 200)
     } catch (err) {
       console.error('Dev login error:', err)
       
-      // Улучшенная обработка ошибок для продакшн-режима
       if ((err as any)?.code === 'NETWORK_ERROR' || (err as any)?.isNetworkError) {
         setError('Сервер недоступен. Пожалуйста, попробуйте позже.')
       } else if (err instanceof Error && err.message.includes('Пользователь не найден')) {
@@ -287,9 +216,6 @@ export default function LoginPage() {
       } else {
         setError('Ошибка входа: ' + (err instanceof Error ? err.message : 'Неизвестная ошибка'))
       }
-      
-      // Очищаем флаг процесса аутентификации при ошибке
-      sessionStorage.removeItem('auth_in_progress')
     } finally {
       setIsLoading(false)
     }
@@ -297,11 +223,7 @@ export default function LoginPage() {
 
   const handleRetryAuth = () => {
     setError(null)
-    setAuthError(null)
     authAttemptedRef.current = false
-    // Очищаем флаги сессии
-    sessionStorage.removeItem('auth_in_progress')
-    sessionStorage.removeItem('just_authenticated')
     
     if (isTelegramApp) {
       handleTelegramLogin()
@@ -474,7 +396,7 @@ export default function LoginPage() {
                 }}>
                   <li>Откройте Telegram</li>
                   <li>Найдите вашего бота</li>
-                  <li>Нажмите кнопку &quot;Открыть приложение&quot;</li>
+                  <li>Нажмите кнопку "Открыть приложение"</li>
                 </ol>
               </div>
             </>
