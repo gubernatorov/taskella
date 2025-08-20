@@ -47,7 +47,7 @@ declare global {
 
 export default function LoginPage() {
   const router = useRouter()
-  const { devLogin } = useAuth()
+  const { user, devLogin } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isTelegramApp, setIsTelegramApp] = useState(false)
@@ -104,6 +104,9 @@ export default function LoginPage() {
       // Устанавливаем cookie для серверных запросов
       document.cookie = `auth_token=${data.token}; path=/; max-age=2592000; secure; samesite=lax`
       
+      // Очищаем флаг редиректа из sessionStorage
+      sessionStorage.removeItem('dashboard_redirect_to_login')
+      
       console.log('Token saved successfully, redirecting to dashboard...')
       
       // Небольшая задержка перед редиректом, чтобы cookie успел установиться
@@ -132,16 +135,11 @@ export default function LoginPage() {
   }, [router, isDevMode, isLoading, isTelegramApp])
 
   useEffect(() => {
-    console.log('🔐 Login page useEffect - AuthAttempted:', authAttemptedRef.current)
+    console.log('🔐 Login page useEffect - User:', !!user, 'AuthAttempted:', authAttemptedRef.current)
     
-    // Проверяем наличие токена в localStorage
-    const token = localStorage.getItem('auth_token')
-    
-    console.log('🔍 Login check - Token:', !!token)
-    
-    // Если есть токен, сразу редиректим на dashboard
-    if (token) {
-      console.log('✅ Token found, redirecting to dashboard...')
+    // Проверяем наличие пользователя в состоянии AuthProvider (более надежно, чем localStorage)
+    if (user) {
+      console.log('✅ User found in auth state, redirecting to dashboard...')
       
       // Определяем, находимся ли мы в Telegram Mini Apps
       const isTelegramApp = window.Telegram?.WebApp?.initData
@@ -152,6 +150,14 @@ export default function LoginPage() {
       } else {
         router.replace('/dashboard')
       }
+      return
+    }
+    
+    // Проверяем флаг редиректа из sessionStorage, чтобы избежать циклов
+    const dashboardRedirectFlag = sessionStorage.getItem('dashboard_redirect_to_login')
+    if (dashboardRedirectFlag === 'true') {
+      console.log('🔄 Dashboard redirect flag found, clearing it and staying on login page...')
+      sessionStorage.removeItem('dashboard_redirect_to_login')
       return
     }
     
@@ -187,7 +193,7 @@ export default function LoginPage() {
         setError('Пожалуйста, откройте приложение через Telegram бот для использования всех функций.')
       }
     }
-  }, [handleTelegramLogin, router])
+  }, [user, handleTelegramLogin, router])
 
   const handleDevLogin = async () => {
     if (isLoading) return
@@ -213,6 +219,9 @@ export default function LoginPage() {
       if (token) {
         document.cookie = `auth_token=${token}; path=/; max-age=2592000; secure; samesite=lax`
       }
+      
+      // Очищаем флаг редиректа из sessionStorage
+      sessionStorage.removeItem('dashboard_redirect_to_login')
       
       console.log('Dev login successful, redirecting to dashboard...')
       
