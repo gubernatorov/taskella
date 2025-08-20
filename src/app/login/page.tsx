@@ -118,7 +118,7 @@ export default function LoginPage() {
       localStorage.setItem('auth_token', data.token)
       
       // Устанавливаем cookie для серверных запросов
-      document.cookie = `auth_token=${data.token}; path=/; max-age=2592000; secure; samesite=strict`
+      document.cookie = `auth_token=${data.token}; path=/; max-age=2592000; secure; samesite=lax`
       
       // Устанавливаем флаг недавней аутентификации
       sessionStorage.setItem('just_authenticated', 'true')
@@ -258,7 +258,7 @@ export default function LoginPage() {
       
       // Устанавливаем cookie для серверных запросов
       if (token) {
-        document.cookie = `auth_token=${token}; path=/; max-age=2592000; secure; samesite=strict`
+        document.cookie = `auth_token=${token}; path=/; max-age=2592000; secure; samesite=lax`
       }
       
       // Устанавливаем флаг недавней аутентификации

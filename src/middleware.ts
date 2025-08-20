@@ -76,6 +76,12 @@ export function middleware(request: NextRequest) {
       return NextResponse.next()
     }
     
+    // Для API запросов всегда пропускаем, чтобы позволить клиенту обрабатывать аутентификацию
+    if (url.startsWith('/api/')) {
+      console.log(`🔄 API request detected, allowing access...`)
+      return NextResponse.next()
+    }
+    
     // Если нет токена ни в cookie, ни в заголовках, перенаправляем на страницу входа
     console.log(`🔄 No auth token found, redirecting to login...`)
     return NextResponse.redirect(new URL('/login', request.url))

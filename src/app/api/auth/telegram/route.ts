@@ -273,10 +273,10 @@ export async function POST(request: NextRequest) {
     // Устанавливаем cookie с токеном
     jsonResponse.cookies.set('auth_token', token, {
       httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  maxAge: 30 * 24 * 60 * 60, // 30 дней
-  path: '/'
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax', // Используем 'lax' вместо 'none' для лучшей совместимости с Telegram
+      maxAge: 30 * 24 * 60 * 60, // 30 дней
+      path: '/'
     })
     
     console.log(`🍪 [${timestamp}] Cookie set in response`)

@@ -153,7 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Устанавливаем cookie для серверных запросов
       if (typeof window !== 'undefined') {
-        document.cookie = `auth_token=${response.token}; path=/; max-age=2592000; secure; samesite=strict`
+        document.cookie = `auth_token=${response.token}; path=/; max-age=2592000; secure; samesite=lax`
         console.log(`🍪 [${timestamp}] Cookie set for auth token`)
         sessionStorage.setItem('just_authenticated', 'true')
         console.log(`🎫 [${timestamp}] Just authenticated flag set`)
@@ -195,7 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Устанавливаем cookie для серверных запросов
       if (typeof window !== 'undefined') {
-        document.cookie = `auth_token=${response.token}; path=/; max-age=2592000; secure; samesite=strict`
+        document.cookie = `auth_token=${response.token}; path=/; max-age=2592000; secure; samesite=lax`
         console.log(`🍪 [${timestamp}] Cookie set for auth token`)
         sessionStorage.setItem('just_authenticated', 'true')
         console.log(`🎫 [${timestamp}] Just authenticated flag set`)
@@ -227,7 +227,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Очищаем cookie
     if (typeof window !== 'undefined') {
-      document.cookie = 'auth_token=; path=/; max-age=0; secure; samesite=strict'
+      document.cookie = 'auth_token=; path=/; max-age=0; secure; samesite=lax'
       console.log(`🍪 [${timestamp}] Cookie cleared`)
       // Очищаем все флаги сессии
       sessionStorage.removeItem('just_authenticated')
