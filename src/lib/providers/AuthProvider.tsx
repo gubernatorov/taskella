@@ -23,6 +23,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [hasInitialized, setHasInitialized] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
 
+  // РАДИКАЛЬНОЕ ИЗМЕНЕНИЕ: Немедленно устанавливаем isLoading в false после монтирования
+  // чтобы избежать блокировки UI при инициализации
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+      console.log('🔄 AuthProvider: isLoading set to false after timeout')
+    }, 100)
+    
+    return () => clearTimeout(timer)
+  }, [])
+
   useEffect(() => {
     // Предотвращаем повторную инициализацию
     if (hasInitialized) return

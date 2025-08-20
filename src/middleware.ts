@@ -69,10 +69,10 @@ export function middleware(request: NextRequest) {
     const userAgent = request.headers.get('user-agent') || ''
     const isTelegram = userAgent.includes('Telegram') || userAgent.includes('t.me')
     
-    // Если это Telegram и нет токена, пропускаем запрос на страницу входа
-    // чтобы избежать бесконечного редиректа в Telegram Mini Apps
+    // РАДИКАЛЬНОЕ ИЗМЕНЕНИЕ: Для Telegram Mini Apps полностью отключаем серверную проверку аутентификации
+    // Вся логика аутентификации будет работать на клиентской стороне
     if (isTelegram) {
-      console.log(`📱 Telegram request detected, allowing access to login page...`)
+      console.log(`📱 Telegram request detected, bypassing server-side auth check...`)
       return NextResponse.next()
     }
     
@@ -83,6 +83,7 @@ export function middleware(request: NextRequest) {
     }
     
     // Если нет токена ни в cookie, ни в заголовках, перенаправляем на страницу входа
+    // (только для не-Telegram запросов)
     console.log(`🔄 No auth token found, redirecting to login...`)
     return NextResponse.redirect(new URL('/login', request.url))
   }
