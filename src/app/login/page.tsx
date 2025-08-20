@@ -396,7 +396,7 @@ export default function LoginPage() {
                 }}>
                   <li>Откройте Telegram</li>
                   <li>Найдите вашего бота</li>
-                  <li>Нажмите кнопку "Открыть приложение"</li>
+                  <li>Нажмите кнопку &quot;Открыть приложение&quot;</li>
                 </ol>
               </div>
             </>
