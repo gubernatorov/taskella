@@ -12,15 +12,20 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading, isInitialized } = useAuth()
   const router = useRouter()
   const [hasRedirected, setHasRedirected] = useState(false)
 
   useEffect(() => {
-    console.log('🏢 Dashboard layout useEffect - User:', !!user, 'Loading:', isLoading, 'HasRedirected:', hasRedirected)
+    console.log('🏢 Dashboard layout useEffect - User:', !!user, 'Loading:', isLoading, 'Initialized:', isInitialized, 'HasRedirected:', hasRedirected)
     
     if (isLoading) {
       console.log('⏳ Dashboard still loading auth...')
+      return
+    }
+    
+    if (!isInitialized) {
+      console.log('⏳ Dashboard auth not initialized, waiting...')
       return
     }
     
@@ -36,7 +41,7 @@ export default function DashboardLayout({
     } else {
       console.log('✅ User exists in dashboard, staying...')
     }
-  }, [user, isLoading, router, hasRedirected])
+  }, [user, isLoading, isInitialized, router, hasRedirected])
 
   if (isLoading) {
     return <Loading />

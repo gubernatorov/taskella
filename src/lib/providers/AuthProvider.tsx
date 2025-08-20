@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null
   token: string | null
   isLoading: boolean
+  isInitialized: boolean
   login: (initData: string) => Promise<void>
   devLogin: (userData: DevAuthRequest['user']) => Promise<void>
   logout: () => void
@@ -20,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [hasInitialized, setHasInitialized] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
     // Предотвращаем повторную инициализацию
@@ -54,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         setIsLoading(false)
+        setIsInitialized(true)
         return
       }
       
@@ -65,6 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isTelegramApp && !localStorage.getItem('auth_token')) {
         console.log('📱 Telegram WebApp detected without token, skipping validation')
         setIsLoading(false)
+        setIsInitialized(true)
         return
       }
       
@@ -113,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log('✅ AuthProvider initialization complete, setting isLoading to false')
       setIsLoading(false)
+      setIsInitialized(true)
     }
 
     initAuth()
@@ -229,7 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, devLogin, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, isInitialized, login, devLogin, logout }}>
       {children}
     </AuthContext.Provider>
   )

@@ -58,6 +58,13 @@ export function middleware(request: NextRequest) {
       return NextResponse.next()
     }
     
+    // Проверяем, не является ли это запросом к главной странице или странице входа
+    // Это предотвращает бесконечный редирект при первом запуске
+    if (url === '/' || url === '/login') {
+      console.log(`🔄 Skipping redirect for ${url} page...`)
+      return NextResponse.next()
+    }
+    
     // Если нет токена ни в cookie, ни в заголовках, перенаправляем на страницу входа
     console.log(`🔄 No auth token found, redirecting to login...`)
     return NextResponse.redirect(new URL('/login', request.url))

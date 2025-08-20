@@ -7,7 +7,7 @@ import { useTelegram } from '@/lib/hooks/useTelegram'
 import { Loading } from '@/components/common/Loading'
 
 export default function HomePage() {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading, isInitialized } = useAuth()
   const { webApp } = useTelegram()
   const router = useRouter()
   const hasRedirectedRef = useRef(false)
@@ -23,7 +23,7 @@ export default function HomePage() {
 
   useEffect(() => {
     // Избегаем множественных редиректов и ждем завершения загрузки
-    console.log('🏠 Main page useEffect - User:', !!user, 'Loading:', isLoading, 'HasRedirected:', hasRedirectedRef.current, 'IsRedirecting:', isRedirecting)
+    console.log('🏠 Main page useEffect - User:', !!user, 'Loading:', isLoading, 'Initialized:', isInitialized, 'HasRedirected:', hasRedirectedRef.current, 'IsRedirecting:', isRedirecting)
     
     // Если уже редиректим, не делаем ничего
     if (isRedirecting) {
@@ -34,6 +34,12 @@ export default function HomePage() {
     // Если уже был редирект, не делаем повторный
     if (hasRedirectedRef.current) {
       console.log('🔄 Already redirected, skipping...')
+      return
+    }
+    
+    // Ждем полной инициализации аутентификации
+    if (!isInitialized) {
+      console.log('⏳ Auth not initialized, waiting...')
       return
     }
     
@@ -75,7 +81,7 @@ export default function HomePage() {
       console.log('❌ No user, redirecting to login...')
       router.replace('/login')
     }
-  }, [user, isLoading, router, isRedirecting])
+  }, [user, isLoading, isInitialized, router, isRedirecting])
 
   return <Loading />
 }
