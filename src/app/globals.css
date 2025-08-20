@@ -4,82 +4,76 @@
 
 @layer base {
   :root {
-    /* Glass morphism цветовая палитра */
-    --background: 220 20% 96%;
-    --background-glass: 220 20% 96% / 0.1;
-    --foreground: 224 71% 4%;
+    /* Telegram Web App цветовая схема - Light Theme */
+    /* Fallback значения если Telegram переменные недоступны */
+    --background: var(--tg-theme-bg-color, #ffffff);
+    --foreground: var(--tg-theme-text-color, #000000);
 
-    --card: 210 40% 98% / 0.25;
-    --card-foreground: 224 71% 4%;
+    --card: var(--tg-theme-secondary-bg-color, #f1f3f4);
+    --card-foreground: var(--tg-theme-text-color, #000000);
 
-    --popover: 220 20% 96% / 0.95;
-    --popover-foreground: 224 71% 4%;
+    --popover: var(--tg-theme-bg-color, #ffffff);
+    --popover-foreground: var(--tg-theme-text-color, #000000);
 
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
-    --primary-glass: 221 83% 53% / 0.2;
+    --primary: var(--tg-theme-button-color, #3390ec);
+    --primary-foreground: var(--tg-theme-button-text-color, #ffffff);
 
-    --secondary: 220 14% 96% / 0.4;
-    --secondary-foreground: 224 71% 4%;
+    --secondary: var(--tg-theme-secondary-bg-color, #f1f3f4);
+    --secondary-foreground: var(--tg-theme-text-color, #000000);
 
-    --muted: 220 14% 96% / 0.6;
-    --muted-foreground: 215 20% 65%;
+    --muted: var(--tg-theme-secondary-bg-color, #f8f9fa);
+    --muted-foreground: var(--tg-theme-hint-color, #6c757d);
 
-    --accent: 221 83% 53% / 0.15;
-    --accent-foreground: 210 40% 98%;
+    --accent: var(--tg-theme-link-color, #3390ec);
+    --accent-foreground: var(--tg-theme-button-text-color, #ffffff);
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: var(--tg-theme-destructive-text-color, #ff3333);
+    --destructive-foreground: #ffffff;
 
-    --border: 220 13% 91% / 0.3;
-    --input: 220 13% 91% / 0.4;
-    --ring: 221 83% 53% / 0.5;
+    --border: var(--tg-theme-hint-color, #e9ecef);
+    --input: var(--tg-theme-secondary-bg-color, #f8f9fa);
+    --ring: var(--tg-theme-button-color, #3390ec);
 
-    --radius: 1rem;
+    --radius: 12px; /* Telegram использует более скругленные углы */
 
-    /* Glass-специфичные переменные */
-    --glass-blur: 16px;
-    --glass-border: 220 13% 91% / 0.25;
-    --glass-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.15);
-    --glass-inset-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.2);
+    /* Telegram-специфичные переменные для совместимости */
+    --tg-color-scheme: light;
   }
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --background-glass: 240 10% 3.9% / 0.15;
-    --foreground: 0 0% 98%;
+  /* Автоматическая темная тема на основе Telegram */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* Telegram Web App цветовая схема - Dark Theme */
+      --background: var(--tg-theme-bg-color, #212121);
+      --foreground: var(--tg-theme-text-color, #ffffff);
 
-    --card: 240 10% 3.9% / 0.25;
-    --card-foreground: 0 0% 98%;
+      --card: var(--tg-theme-secondary-bg-color, #2c2c2e);
+      --card-foreground: var(--tg-theme-text-color, #ffffff);
 
-    --popover: 240 10% 3.9% / 0.9;
-    --popover-foreground: 0 0% 98%;
+      --popover: var(--tg-theme-bg-color, #212121);
+      --popover-foreground: var(--tg-theme-text-color, #ffffff);
 
-    --primary: 263 70% 60%;
-    --primary-foreground: 0 0% 98%;
-    --primary-glass: 263 70% 60% / 0.3;
+      --primary: var(--tg-theme-button-color, #3390ec);
+      --primary-foreground: var(--tg-theme-button-text-color, #ffffff);
 
-    --secondary: 240 3.7% 15.9% / 0.4;
-    --secondary-foreground: 0 0% 98%;
+      --secondary: var(--tg-theme-secondary-bg-color, #2c2c2e);
+      --secondary-foreground: var(--tg-theme-text-color, #ffffff);
 
-    --muted: 240 3.7% 15.9% / 0.6;
-    --muted-foreground: 240 5% 64.9%;
+      --muted: var(--tg-theme-secondary-bg-color, #1c1c1e);
+      --muted-foreground: var(--tg-theme-hint-color, #8e8e93);
 
-    --accent: 240 3.7% 15.9% / 0.4;
-    --accent-foreground: 0 0% 98%;
+      --accent: var(--tg-theme-link-color, #3390ec);
+      --accent-foreground: var(--tg-theme-button-text-color, #ffffff);
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+      --destructive: var(--tg-theme-destructive-text-color, #ff453a);
+      --destructive-foreground: #ffffff;
 
-    --border: 240 3.7% 15.9% / 0.3;
-    --input: 240 3.7% 15.9% / 0.4;
-    --ring: 263 70% 60% / 0.4;
+      --border: var(--tg-theme-hint-color, #3a3a3c);
+      --input: var(--tg-theme-secondary-bg-color, #1c1c1e);
+      --ring: var(--tg-theme-button-color, #3390ec);
 
-    /* Dark glass variables */
-    --glass-blur: 20px;
-    --glass-border: 240 3.7% 15.9% / 0.3;
-    --glass-shadow: 0 8px 32px 0 rgb(0 0 0 / 0.5);
-    --glass-inset-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.1);
+      --tg-color-scheme: dark;
+    }
   }
 }
 
@@ -428,4 +422,10 @@ input, textarea, [contenteditable] {
     -webkit-box-orient: horizontal;
     -webkit-line-clamp: none;
   }
+}
+
+/* Анимация для спиннера */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

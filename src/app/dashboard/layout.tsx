@@ -47,14 +47,12 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div style={{ backgroundColor: 'var(--tg-theme-bg-color, #ffffff)' }}>
       <Header />
-      <div className="flex">
-        <Navigation />
-        <main className="flex-1 p-4">
-          {children}
-        </main>
-      </div>
+      <Navigation />
+      <main style={{ padding: '16px' }}>
+        {children}
+      </main>
     </div>
   )
 }

@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { TelegramUIButton } from '@/components/ui/telegram-button'
+import { TelegramCard } from '@/components/ui/telegram-card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { KanbanBoard } from './KanbanBoard'
 import { ScrumBoard } from './ScrumBoard'
@@ -47,14 +47,13 @@ export function BoardList() {
   return (
     <div className="space-y-6">
       {/* Настройки доски */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Настройки доски</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <TelegramCard>
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-[var(--tg-theme-text-color)] mb-4">Настройки доски</h2>
+          <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="project-select" className="text-sm font-medium">Проект</label>
+              <label htmlFor="project-select" className="text-sm font-medium text-[var(--tg-theme-text-color)]">Проект</label>
               <Select value={selectedProject} onValueChange={setSelectedProject}>
                 <SelectTrigger id="project-select">
                   <SelectValue placeholder="Выберите проект" />
@@ -70,7 +69,7 @@ export function BoardList() {
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="board-type-select" className="text-sm font-medium">Тип доски</label>
+              <label htmlFor="board-type-select" className="text-sm font-medium text-[var(--tg-theme-text-color)]">Тип доски</label>
               <Select value={boardType} onValueChange={(value: BoardType) => setBoardType(value)}>
                 <SelectTrigger id="board-type-select">
                   <SelectValue />
@@ -82,18 +81,19 @@ export function BoardList() {
               </Select>
             </div>
           </div>
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+      </TelegramCard>
 
       {/* Доска */}
       {selectedProject ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-2xl font-bold text-[var(--tg-theme-text-color)]">
               {selectedProjectData?.name} - {boardType === 'kanban' ? 'Kanban' : 'Scrum'} доска
             </h2>
-            <Button
-              variant="outline"
+            <TelegramUIButton
+              variant="secondary"
               onClick={() => {
                 // Используем более React-подходный способ обновления данных
                 const currentProject = selectedProject;
@@ -106,7 +106,7 @@ export function BoardList() {
               }}
             >
               Обновить
-            </Button>
+            </TelegramUIButton>
           </div>
           
           {tasksLoading ? (
@@ -124,18 +124,18 @@ export function BoardList() {
           )}
         </div>
       ) : (
-        <Card>
-          <CardContent className="flex items-center justify-center p-12">
+        <TelegramCard>
+          <div className="flex items-center justify-center p-12">
             <div className="text-center space-y-2">
-              <h3 className="text-lg font-medium text-muted-foreground">
+              <h3 className="text-lg font-medium text-[var(--tg-theme-hint-color)]">
                 Выберите проект для отображения доски
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-[var(--tg-theme-hint-color)]">
                 Выберите проект из списка выше, чтобы увидеть задачи на доске
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </TelegramCard>
       )}
     </div>
   )

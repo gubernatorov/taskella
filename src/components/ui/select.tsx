@@ -37,7 +37,18 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "glass-subtle hover:glass data-[placeholder]:text-muted-foreground/70 [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-primary/60 focus-visible:ring-primary/40 aria-invalid:ring-destructive/30 dark:aria-invalid:ring-destructive/50 aria-invalid:border-destructive flex w-fit items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm whitespace-nowrap shadow-glass-sm transition-all duration-300 outline-none focus-visible:ring-[3px] focus-visible:shadow-glass focus-visible:scale-[1.02] hover:shadow-glass hover:backdrop-blur-[12px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        // Базовые стили с Telegram переменными
+        "flex w-fit items-center justify-between gap-2 rounded-xl border-0 px-4 py-3 text-sm whitespace-nowrap transition-all duration-200 outline-none",
+        "bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)]",
+        "hover:bg-[var(--tg-theme-bg-color)] focus:bg-[var(--tg-theme-bg-color)] focus:shadow-sm",
+        "data-[placeholder]:text-[var(--tg-theme-hint-color)]",
+        "[&_svg:not([class*='text-'])]:text-[var(--tg-theme-hint-color)]",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        "data-[size=default]:h-9 data-[size=sm]:h-8",
+        "*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2",
+        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        // Состояние ошибки
+        "aria-invalid:bg-[var(--tg-theme-destructive-text-color)]/10",
         className
       )}
       {...props}
@@ -61,7 +72,15 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          "bg-card/95 text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-[var(--radix-select-content-available-height)] min-w-[8rem] origin-[var(--radix-select-content-transform-origin)] overflow-x-hidden overflow-y-auto rounded-lg border border-border shadow-glass-lg backdrop-saturate-150 backdrop-blur-xl",
+          // Стили контента с Telegram переменными
+          "bg-[var(--tg-theme-bg-color)] text-[var(--tg-theme-text-color)] border border-[var(--tg-theme-hint-color)]/20",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+          "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2",
+          "data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+          "relative z-50 max-h-[var(--radix-select-content-available-height)] min-w-[8rem]",
+          "origin-[var(--radix-select-content-transform-origin)] overflow-x-hidden overflow-y-auto",
+          "rounded-xl shadow-lg backdrop-blur-sm",
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className
@@ -92,7 +111,7 @@ function SelectLabel({
   return (
     <SelectPrimitive.Label
       data-slot="select-label"
-      className={cn("text-muted-foreground px-2 py-1.5 text-xs", className)}
+      className={cn("text-[var(--tg-theme-hint-color)] px-2 py-1.5 text-xs", className)}
       {...props}
     />
   )
@@ -107,7 +126,13 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "focus:bg-accent/80 focus:backdrop-blur-[16px] focus:text-foreground focus:shadow-glass-sm [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-md py-2 pr-8 pl-3 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_span]:last:flex [&_span]:last:items-center [&_span]:last:gap-2 hover:bg-accent/60 hover:backdrop-blur-[14px] transition-all duration-200",
+        // Стили элементов с Telegram переменными
+        "relative flex w-full cursor-default items-center gap-2 rounded-lg py-3 pr-8 pl-3 text-sm outline-none select-none transition-all duration-150",
+        "text-[var(--tg-theme-text-color)] hover:bg-[var(--tg-theme-secondary-bg-color)] focus:bg-[var(--tg-theme-secondary-bg-color)]",
+        "[&_svg:not([class*='text-'])]:text-[var(--tg-theme-hint-color)]",
+        "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "[&_span]:last:flex [&_span]:last:items-center [&_span]:last:gap-2",
         className
       )}
       {...props}
@@ -129,7 +154,7 @@ function SelectSeparator({
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
-      className={cn("bg-border pointer-events-none -mx-1 my-1 h-px", className)}
+      className={cn("bg-[var(--tg-theme-hint-color)]/20 pointer-events-none -mx-1 my-1 h-px", className)}
       {...props}
     />
   )

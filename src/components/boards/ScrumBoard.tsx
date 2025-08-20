@@ -2,9 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { TelegramCard } from '@/components/ui/telegram-card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { TelegramUIButton } from '@/components/ui/telegram-button'
 import { Task, TaskStatus, TaskType } from '@/types/task'
 import { useUpdateTask } from '@/lib/hooks/useTasks'
 import { PriorityBadge } from '@/components/tasks/PriorityBadge'
@@ -18,10 +18,10 @@ interface ScrumBoardProps {
 }
 
 const SCRUM_COLUMNS: { id: TaskStatus; title: string; color: string }[] = [
-  { id: 'todo', title: 'Product Backlog', color: 'bg-slate-100' },
-  { id: 'in_progress', title: 'Sprint Backlog', color: 'bg-blue-100' },
-  { id: 'in_review', title: 'In Review', color: 'bg-yellow-100' },
-  { id: 'done', title: 'Done', color: 'bg-green-100' }
+  { id: 'todo', title: 'Product Backlog', color: 'bg-[var(--tg-theme-secondary-bg-color)]' },
+  { id: 'in_progress', title: 'Sprint Backlog', color: 'bg-[var(--tg-theme-button-color)]/10' },
+  { id: 'in_review', title: 'In Review', color: 'bg-[var(--tg-theme-link-color)]/10' },
+  { id: 'done', title: 'Done', color: 'bg-green-500/10' }
 ]
 
 const TASK_TYPE_ICONS = {
@@ -33,9 +33,9 @@ const TASK_TYPE_ICONS = {
 }
 
 const TASK_TYPE_COLORS = {
-  story: 'bg-blue-500',
+  story: 'bg-[var(--tg-theme-button-color)]',
   task: 'bg-green-500',
-  bug: 'bg-red-500',
+  bug: 'bg-[var(--tg-theme-destructive-text-color)]',
   epic: 'bg-purple-500',
   feature: 'bg-orange-500'
 }
@@ -105,21 +105,21 @@ export function ScrumBoard({ tasks, projectId }: ScrumBoardProps) {
   return (
     <div className="space-y-6">
       {/* Sprint Info */}
-      <Card>
-        <CardHeader>
+      <TelegramCard>
+        <div className="p-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5" />
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-[var(--tg-theme-text-color)]">
+              <Target className="w-5 h-5 text-[var(--tg-theme-button-color)]" />
               Текущий спринт
-            </CardTitle>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            </h2>
+            <div className="flex items-center gap-4 text-sm text-[var(--tg-theme-hint-color)]">
               <div>Всего задач: {localTasks.length}</div>
               <div>Story Points: {getStoryPoints(localTasks)}</div>
               <div>Выполнено: {getTasksByStatus('done').length}</div>
             </div>
           </div>
-        </CardHeader>
-      </Card>
+        </div>
+      </TelegramCard>
 
       {/* Scrum Board */}
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -130,16 +130,16 @@ export function ScrumBoard({ tasks, projectId }: ScrumBoardProps) {
             
             return (
               <div key={column.id} className="space-y-3">
-                <div className={`p-4 rounded-lg ${column.color}`}>
+                <div className={`p-4 rounded-xl ${column.color} border border-[var(--tg-theme-hint-color)]/10`}>
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-sm">{column.title}</h3>
+                    <h3 className="font-semibold text-sm text-[var(--tg-theme-text-color)]">{column.title}</h3>
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs" aria-label={`${columnTasks.length} задач`}>
+                      <div className="bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] px-2 py-1 rounded-full text-xs font-medium">
                         {columnTasks.length}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs" aria-label={`${storyPoints} story points`}>
+                      </div>
+                      <div className="bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] px-2 py-1 rounded-full text-xs">
                         {storyPoints} SP
-                      </Badge>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -149,8 +149,8 @@ export function ScrumBoard({ tasks, projectId }: ScrumBoardProps) {
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`min-h-[300px] space-y-3 p-2 rounded-lg transition-colors ${
-                        snapshot.isDraggingOver ? 'bg-slate-50' : ''
+                      className={`min-h-[300px] space-y-3 p-2 rounded-xl transition-colors ${
+                        snapshot.isDraggingOver ? 'bg-[var(--tg-theme-secondary-bg-color)]' : ''
                       }`}
                     >
                       {columnTasks.map((task, index) => (
@@ -165,22 +165,22 @@ export function ScrumBoard({ tasks, projectId }: ScrumBoardProps) {
                               }`}
                             >
                               <Link href={`/tasks/${task.id}`} className="block">
-                                <Card className="h-full hover:shadow-md transition-shadow">
-                                  <CardContent className="p-4 space-y-3">
+                                <TelegramCard className="h-full transition-all duration-200 hover:scale-[1.02]">
+                                  <div className="p-4 space-y-3">
                                     <div className="flex items-start justify-between">
                                       <div className="space-y-2 flex-1">
                                         <div className="flex items-center gap-2">
-                                          <div className={`p-1 rounded text-white ${getTaskTypeColor(task.type)}`}>
+                                          <div className={`p-1 rounded text-[var(--tg-theme-button-text-color)] ${getTaskTypeColor(task.type)}`}>
                                             {getTaskTypeIcon(task.type)}
                                           </div>
-                                          <Badge variant="outline" className="text-xs">
+                                          <div className="bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] px-2 py-1 rounded-lg text-xs font-medium">
                                             {task.key}
-                                          </Badge>
-                                          <Badge variant="outline" className="text-xs capitalize">
+                                          </div>
+                                          <div className="bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] px-2 py-1 rounded-lg text-xs capitalize">
                                             {task.type}
-                                          </Badge>
+                                          </div>
                                         </div>
-                                        <h4 className="font-medium text-sm leading-tight hover:text-primary transition-colors">
+                                        <h4 className="font-medium text-sm leading-tight text-[var(--tg-theme-text-color)] hover:text-[var(--tg-theme-link-color)] transition-colors">
                                           {task.title}
                                         </h4>
                                       </div>
@@ -188,7 +188,7 @@ export function ScrumBoard({ tasks, projectId }: ScrumBoardProps) {
                                     </div>
 
                                     {task.description && (
-                                      <p className="text-xs text-muted-foreground line-clamp-3">
+                                      <p className="text-xs text-[var(--tg-theme-hint-color)] line-clamp-3">
                                         {task.description}
                                       </p>
                                     )}
@@ -203,14 +203,14 @@ export function ScrumBoard({ tasks, projectId }: ScrumBoardProps) {
                                                 {task.assignee.firstName.charAt(0)}
                                               </AvatarFallback>
                                             </Avatar>
-                                            <span className="text-xs text-muted-foreground">
+                                            <span className="text-xs text-[var(--tg-theme-hint-color)]">
                                               {task.assignee.firstName}
                                             </span>
                                           </div>
                                         )}
                                       </div>
 
-                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                      <div className="flex items-center gap-2 text-xs text-[var(--tg-theme-hint-color)]">
                                         {task.estimatedHours && (
                                           <div className="flex items-center gap-1">
                                             <Clock className="w-3 h-3" />
@@ -228,8 +228,8 @@ export function ScrumBoard({ tasks, projectId }: ScrumBoardProps) {
                                         )}
                                       </div>
                                     </div>
-                                  </CardContent>
-                                </Card>
+                                  </div>
+                                </TelegramCard>
                               </Link>
                             </div>
                           )}

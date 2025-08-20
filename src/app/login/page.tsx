@@ -304,12 +304,31 @@ export default function LoginPage() {
   // Если это Telegram и идет автоматическая авторизация
   if (isTelegramApp && isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div style={{
+        display: 'flex',
+        minHeight: '100vh',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'var(--tg-theme-bg-color, #ffffff)'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{
+              display: 'inline-block',
+              width: '32px',
+              height: '32px',
+              border: '2px solid var(--tg-theme-hint-color, #999999)',
+              borderTop: '2px solid var(--tg-theme-button-color, #3390ec)',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
           </div>
-          <p className="text-gray-600">Signing in with Telegram...</p>
+          <p style={{
+            color: 'var(--tg-theme-text-color, #000000)',
+            fontSize: '16px'
+          }}>
+            Вход через Telegram...
+          </p>
         </div>
       </div>
     )
@@ -317,87 +336,172 @@ export default function LoginPage() {
 
   // Режим разработки или ошибка в Telegram
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-6 shadow-lg">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">
-            {isDevMode ? 'Development Mode' : 'Login'}
+    <div style={{
+      backgroundColor: 'var(--tg-theme-bg-color, #ffffff)',
+      minHeight: '100vh',
+      padding: '20px'
+    }}>
+      <div style={{ maxWidth: '400px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: 'var(--tg-theme-text-color, #000000)',
+            marginBottom: '8px'
+          }}>
+            {isDevMode ? 'Development Mode' : 'Вход в систему'}
           </h2>
           {isDevMode && (
-            <p className="mt-2 text-sm text-gray-600">
-              Open this app in Telegram for full functionality
+            <p style={{
+              fontSize: '14px',
+              color: 'var(--tg-theme-hint-color, #999999)'
+            }}>
+              Откройте это приложение в Telegram для полной функциональности
             </p>
           )}
         </div>
 
         {error && (
-          <div className="rounded-md bg-red-50 p-4">
-            <p className="text-sm text-red-800">{error}</p>
-            {(error.includes('Пользователь не найден') || error.includes('USER_NOT_FOUND') || error.includes('База данных')) && (
-              <Button
+          <div style={{
+            backgroundColor: '#ffebee',
+            border: '1px solid #ffcdd2',
+            borderRadius: '8px',
+            padding: '16px',
+            marginBottom: '20px'
+          }}>
+            <p style={{ fontSize: '14px', color: '#d32f2f' }}>{error}</p>
+            {error && (error.includes('Пользователь не найден') || error.includes('USER_NOT_FOUND') || error.includes('База данных')) && (
+              <button
                 onClick={handleRetryAuth}
-                className="mt-2 w-full bg-red-600 hover:bg-red-700"
+                style={{
+                  width: '100%',
+                  marginTop: '12px',
+                  padding: '12px',
+                  backgroundColor: 'var(--tg-theme-destructive-text-color, #ff3333)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  cursor: 'pointer'
+                }}
               >
                 Попробовать войти снова
-              </Button>
+              </button>
             )}
           </div>
         )}
 
-        <div className="space-y-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {isDevMode ? (
             <>
-              <Button
+              <button
                 onClick={handleDevLogin}
                 disabled={isLoading}
-                className="w-full"
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  backgroundColor: 'var(--tg-theme-button-color, #3390ec)',
+                  color: 'var(--tg-theme-button-text-color, #ffffff)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  opacity: isLoading ? 0.6 : 1
+                }}
               >
-                {isLoading ? 'Signing in...' : 'Continue as Test User (Dev API)'}
-              </Button>
+                {isLoading ? 'Вход...' : 'Войти как тестовый пользователь'}
+              </button>
               
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-2 text-gray-500">Or</span>
-                </div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                margin: '8px 0',
+                color: 'var(--tg-theme-hint-color, #999999)',
+                fontSize: '14px'
+              }}>
+                <div style={{ flex: 1, height: '1px', backgroundColor: '#e0e0e0' }} />
+                <span style={{ padding: '0 16px' }}>или</span>
+                <div style={{ flex: 1, height: '1px', backgroundColor: '#e0e0e0' }} />
               </div>
 
-              <Button
+              <button
                 onClick={handleTelegramLogin}
                 disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  backgroundColor: 'var(--tg-theme-secondary-bg-color, #f1f3f4)',
+                  color: 'var(--tg-theme-text-color, #000000)',
+                  border: '1px solid var(--tg-theme-button-color, #3390ec)',
+                  borderRadius: '12px',
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  opacity: isLoading ? 0.6 : 1
+                }}
               >
-                {isLoading ? 'Signing in...' : 'Test Telegram Auth (Dev Mode)'}
-              </Button>
+                {isLoading ? 'Вход...' : 'Тестировать авторизацию Telegram'}
+              </button>
 
-              <div className="rounded-md bg-blue-50 p-4">
-                <h3 className="text-sm font-medium text-blue-800">
-                  How to use in Telegram:
+              <div style={{
+                backgroundColor: '#e3f2fd',
+                border: '1px solid #bbdefb',
+                borderRadius: '8px',
+                padding: '16px'
+              }}>
+                <h3 style={{
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#1565c0',
+                  marginBottom: '8px'
+                }}>
+                  Как использовать в Telegram:
                 </h3>
-                <ol className="mt-2 list-decimal list-inside text-sm text-blue-700 space-y-1">
-                  <li>Open Telegram</li>
-                  <li>Search for your bot</li>
-                  <li>Click &ldquo;Open App&rdquo; button</li>
+                <ol style={{
+                  margin: 0,
+                  paddingLeft: '20px',
+                  fontSize: '13px',
+                  color: '#1976d2',
+                  lineHeight: '1.4'
+                }}>
+                  <li>Откройте Telegram</li>
+                  <li>Найдите вашего бота</li>
+                  <li>Нажмите кнопку &quot;Открыть приложение&quot;</li>
                 </ol>
               </div>
             </>
           ) : (
-            <Button
+            <button
               onClick={handleTelegramLogin}
               disabled={isLoading}
-              className="w-full"
+              style={{
+                width: '100%',
+                padding: '16px',
+                backgroundColor: 'var(--tg-theme-button-color, #3390ec)',
+                color: 'var(--tg-theme-button-text-color, #ffffff)',
+                border: 'none',
+                borderRadius: '12px',
+                fontSize: '16px',
+                fontWeight: '500',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                opacity: isLoading ? 0.6 : 1
+              }}
             >
-              {isLoading ? 'Signing in...' : 'Sign in with Telegram'}
-            </Button>
+              {isLoading ? 'Вход...' : 'Войти через Telegram'}
+            </button>
           )}
         </div>
 
         {isDevMode && (
-          <div className="text-center text-xs text-gray-500">
-            <p>Development mode detected</p>
-            <p>Some features may be limited</p>
+          <div style={{
+            textAlign: 'center',
+            marginTop: '20px',
+            fontSize: '12px',
+            color: 'var(--tg-theme-hint-color, #999999)'
+          }}>
+            <p>Режим разработки активен</p>
+            <p>Некоторые функции могут быть ограничены</p>
           </div>
         )}
       </div>

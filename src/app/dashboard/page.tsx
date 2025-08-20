@@ -1,80 +1,88 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { List, Section, Cell, Button } from '@telegram-apps/telegram-ui'
 import { useProjects } from '@/lib/hooks/useProjects'
 import { useTasks } from '@/lib/hooks/useTasks'
-import { ProjectCard } from '@/components/projects/ProjectCard'
-import { TaskCard } from '@/components/tasks/TaskCard'
-import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
-import Link from 'next/link'
+import { Plus, FolderOpen, CheckSquare, ArrowRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function DashboardPage() {
   const { data: projects } = useProjects({ limit: 3 })
   const { data: tasks } = useTasks({ limit: 5, status: 'in_progress' })
+  const router = useRouter()
 
   return (
-    <div className="space-y-6 animate-float">
-      <div className="glass glass-hover p-6 rounded-xl">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-          Дашборд
-        </h1>
-        <p className="text-muted-foreground/80 mt-1">
-          Обзор ваших проектов и задач
-        </p>
-      </div>
+    <List>
+      <Section header="Дашборд" footer="Обзор ваших проектов и задач">
+        <Cell
+          before={<div style={{ color: 'var(--tg-theme-accent-text-color, #3390ec)' }}>📊</div>}
+          subtitle="Добро пожаловать в Taskella"
+        >
+          Управление задачами
+        </Cell>
+      </Section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="glass glass-hover">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                Недавние проекты
-              </CardTitle>
-              <CardDescription className="text-muted-foreground/80">Ваши последние проекты</CardDescription>
-            </div>
-            <Button asChild size="sm">
-              <Link href="/projects/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Создать
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {projects?.map((project) => (
-              <ProjectCard key={project.id} project={project} compact />
-            ))}
-            <Button variant="outline" asChild className="w-full">
-              <Link href="/projects">Все проекты</Link>
-            </Button>
-          </CardContent>
-        </Card>
+      <Section
+        header="Недавние проекты"
+        footer={`Показано ${projects?.length || 0} из последних проектов`}
+      >
+        {projects?.map((project) => (
+          <Cell
+            key={project.id}
+            before={<FolderOpen size={20} style={{ color: 'var(--tg-theme-accent-text-color, #3390ec)' }} />}
+            after={<ArrowRight size={16} />}
+            subtitle={project.description || 'Без описания'}
+            onClick={() => router.push(`/projects/${project.id}`)}
+          >
+            {project.name}
+          </Cell>
+        ))}
+        
+        <Cell
+          before={<Plus size={20} />}
+          onClick={() => router.push('/projects/new')}
+        >
+          Создать новый проект
+        </Cell>
+        
+        <Cell
+          before={<ArrowRight size={20} />}
+          onClick={() => router.push('/projects')}
+        >
+          Все проекты
+        </Cell>
+      </Section>
 
-        <Card className="glass glass-hover">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                В работе
-              </CardTitle>
-              <CardDescription className="text-muted-foreground/80">Ваши активные задачи</CardDescription>
-            </div>
-            <Button asChild size="sm">
-              <Link href="/tasks/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Создать
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {tasks?.map((task) => (
-              <TaskCard key={task.id} task={task} compact />
-            ))}
-            <Button variant="outline" asChild className="w-full">
-              <Link href="/tasks">Все задачи</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      <Section
+        header="Активные задачи"
+        footer={`Показано ${tasks?.length || 0} задач в работе`}
+      >
+        {tasks?.map((task) => (
+          <Cell
+            key={task.id}
+            before={<CheckSquare size={20} style={{ color: 'var(--tg-theme-accent-text-color, #3390ec)' }} />}
+            after={<ArrowRight size={16} />}
+            subtitle={`Приоритет: ${task.priority || 'normal'}`}
+            onClick={() => router.push(`/tasks/${task.id}`)}
+          >
+            {task.title}
+          </Cell>
+        ))}
+        
+        <Cell
+          before={<Plus size={20} />}
+          onClick={() => router.push('/tasks/new')}
+        >
+          Создать новую задачу
+        </Cell>
+        
+        <Cell
+          before={<ArrowRight size={20} />}
+          onClick={() => router.push('/tasks')}
+        >
+          Все задачи
+        </Cell>
+      </Section>
+    </List>
   )
 }

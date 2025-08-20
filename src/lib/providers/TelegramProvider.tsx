@@ -16,21 +16,28 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).Telegram) {
-      const tg = (window as any).Telegram.WebApp
-      setWebApp(tg)
-      setUser(tg.initDataUnsafe?.user)
-      
-      // Настройка темы
-      if (tg.colorScheme === 'dark') {
-        document.documentElement.classList.add('dark')
+    if (typeof window !== 'undefined') {
+      if ((window as any).Telegram) {
+        const tg = (window as any).Telegram.WebApp
+        setWebApp(tg)
+        setUser(tg.initDataUnsafe?.user)
+        
+        // Настройка темы
+        if (tg.colorScheme === 'dark') {
+          document.documentElement.classList.add('dark')
+        }
+        
+        // Настройка WebApp
+        tg.ready()
+        tg.expand()
+        tg.setHeaderColor('#ffffff')
+        
+        console.log('📱 Telegram WebApp initialized')
+      } else {
+        console.log('🌐 Running in regular browser (not Telegram WebApp)')
       }
       
-      // Настройка WebApp
-      tg.ready()
-      tg.expand()
-      tg.setHeaderColor('#ffffff')
-      
+      // Устанавливаем isReady в true независимо от того, в Telegram мы или нет
       setIsReady(true)
     }
   }, [])

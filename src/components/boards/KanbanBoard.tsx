@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { TelegramCard } from '@/components/ui/telegram-card'
 import { Badge } from '@/components/ui/badge'
 import { Task, TaskStatus } from '@/types/task'
 import { useUpdateTask } from '@/lib/hooks/useTasks'
@@ -18,11 +18,11 @@ interface KanbanBoardProps {
 }
 
 const KANBAN_COLUMNS: { id: TaskStatus; title: string; color: string }[] = [
-  { id: 'todo', title: 'К выполнению', color: 'bg-slate-100' },
-  { id: 'in_progress', title: 'В работе', color: 'bg-blue-100' },
-  { id: 'in_review', title: 'На проверке', color: 'bg-yellow-100' },
-  { id: 'done', title: 'Выполнено', color: 'bg-green-100' },
-  { id: 'cancelled', title: 'Отменено', color: 'bg-red-100' }
+  { id: 'todo', title: 'К выполнению', color: 'bg-[var(--tg-theme-secondary-bg-color)]' },
+  { id: 'in_progress', title: 'В работе', color: 'bg-[var(--tg-theme-button-color)]/10' },
+  { id: 'in_review', title: 'На проверке', color: 'bg-[var(--tg-theme-link-color)]/10' },
+  { id: 'done', title: 'Выполнено', color: 'bg-green-500/10' },
+  { id: 'cancelled', title: 'Отменено', color: 'bg-[var(--tg-theme-destructive-text-color)]/10' }
 ]
 
 export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
@@ -79,12 +79,14 @@ export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {KANBAN_COLUMNS.map(column => (
           <div key={column.id} className="space-y-3">
-            <div className={`p-3 rounded-lg ${column.color}`}>
-              <h3 className="font-semibold text-sm flex items-center justify-between">
+            <div className={`p-4 rounded-xl ${column.color} border border-[var(--tg-theme-hint-color)]/10`}>
+              <h3 className="font-semibold text-sm flex items-center justify-between text-[var(--tg-theme-text-color)]">
                 <span>{column.title}</span>
-                <Badge variant="secondary" className="ml-2" aria-label={`${getTasksByStatus(column.id).length} задач`}>
-                  {getTasksByStatus(column.id).length}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <div className="bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] px-2 py-1 rounded-full text-xs font-medium">
+                    {getTasksByStatus(column.id).length}
+                  </div>
+                </div>
               </h3>
             </div>
 
@@ -93,8 +95,8 @@ export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`min-h-[200px] space-y-2 p-2 rounded-lg transition-colors ${
-                    snapshot.isDraggingOver ? 'bg-slate-50' : ''
+                  className={`min-h-[200px] space-y-3 p-2 rounded-xl transition-colors ${
+                    snapshot.isDraggingOver ? 'bg-[var(--tg-theme-secondary-bg-color)]' : ''
                   }`}
                 >
                   {getTasksByStatus(column.id).map((task, index) => (
@@ -109,19 +111,19 @@ export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
                           }`}
                         >
                           <Link href={`/tasks/${task.id}`} className="block">
-                            <Card className="h-full hover:shadow-md transition-shadow">
-                              <CardContent className="p-3 space-y-2">
+                            <TelegramCard className="h-full transition-all duration-200 hover:scale-[1.02]">
+                              <div className="p-4 space-y-3">
                                 <div className="flex items-start justify-between">
                                   <div className="space-y-1 flex-1">
                                     <div className="flex items-center gap-2">
-                                      <Badge variant="outline" className="text-xs">
+                                      <div className="bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] px-2 py-1 rounded-lg text-xs font-medium">
                                         {task.key}
-                                      </Badge>
-                                      <Badge variant="outline" className="text-xs">
+                                      </div>
+                                      <div className="bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] px-2 py-1 rounded-lg text-xs">
                                         {task.type}
-                                      </Badge>
+                                      </div>
                                     </div>
-                                    <h4 className="font-medium text-sm leading-tight hover:text-primary transition-colors">
+                                    <h4 className="font-medium text-sm leading-tight text-[var(--tg-theme-text-color)] hover:text-[var(--tg-theme-link-color)] transition-colors">
                                       {task.title}
                                     </h4>
                                   </div>
@@ -129,12 +131,12 @@ export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
                                 </div>
 
                                 {task.description && (
-                                  <p className="text-xs text-muted-foreground line-clamp-2">
+                                  <p className="text-xs text-[var(--tg-theme-hint-color)] line-clamp-2">
                                     {task.description}
                                   </p>
                                 )}
 
-                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <div className="flex items-center justify-between text-xs text-[var(--tg-theme-hint-color)]">
                                   <div className="flex items-center gap-2">
                                     {task.assignee && (
                                       <div className="flex items-center gap-1">
@@ -164,8 +166,8 @@ export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
                                     </div>
                                   )}
                                 </div>
-                              </CardContent>
-                            </Card>
+                              </div>
+                            </TelegramCard>
                           </Link>
                         </div>
                       )}

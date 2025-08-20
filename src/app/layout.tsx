@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import '@telegram-apps/telegram-ui/dist/styles.css'
 import { QueryProvider } from '@/lib/providers/QueryProvider'
 import { TelegramProvider } from '@/lib/providers/TelegramProvider'
 import { AuthProvider } from '@/lib/providers/AuthProvider'
+import { AppRoot } from '@telegram-apps/telegram-ui'
 
 export const metadata: Metadata = {
   title: 'Task Tracker',
@@ -24,7 +26,9 @@ export default function RootLayout({
         <TelegramProvider>
           <QueryProvider>
             <AuthProvider>
-              {children}
+              <AppRoot>
+                {children}
+              </AppRoot>
             </AuthProvider>
           </QueryProvider>
         </TelegramProvider>

@@ -7,7 +7,19 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
     <textarea
       data-slot="textarea"
       className={cn(
-        "bg-background/80 backdrop-blur-sm border-border/50 placeholder:text-muted-foreground/70 focus-visible:border-ring/50 focus-visible:ring-ring/30 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive flex field-sizing-content min-h-16 w-full rounded-md border px-3 py-2 text-base shadow-sm transition-all duration-300 outline-none focus-visible:ring-[3px] focus-visible:shadow-md focus-visible:scale-[1.01] hover:border-border/70 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 md:text-sm resize-none",
+        // Базовые стили с Telegram переменными
+        "flex min-h-16 w-full rounded-xl border-0 px-4 py-3 text-base outline-none transition-all duration-200 resize-none",
+        "bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)]",
+        "placeholder:text-[var(--tg-theme-hint-color)] selection:bg-[var(--tg-theme-button-color)] selection:text-[var(--tg-theme-button-text-color)]",
+        
+        // Состояния
+        "hover:bg-[var(--tg-theme-bg-color)] focus:bg-[var(--tg-theme-bg-color)] focus:shadow-sm",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        
+        // Состояние ошибки
+        "aria-invalid:bg-[var(--tg-theme-destructive-text-color)]/10 aria-invalid:border-[var(--tg-theme-destructive-text-color)]/30",
+        
+        "md:text-sm",
         className
       )}
       {...props}
