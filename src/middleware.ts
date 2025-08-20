@@ -65,6 +65,17 @@ export function middleware(request: NextRequest) {
       return NextResponse.next()
     }
     
+    // Для продакшн-режима: проверяем User-Agent для Telegram
+    const userAgent = request.headers.get('user-agent') || ''
+    const isTelegram = userAgent.includes('Telegram') || userAgent.includes('t.me')
+    
+    // Если это Telegram и нет токена, пропускаем запрос на страницу входа
+    // чтобы избежать бесконечного редиректа в Telegram Mini Apps
+    if (isTelegram) {
+      console.log(`📱 Telegram request detected, allowing access to login page...`)
+      return NextResponse.next()
+    }
+    
     // Если нет токена ни в cookie, ни в заголовках, перенаправляем на страницу входа
     console.log(`🔄 No auth token found, redirecting to login...`)
     return NextResponse.redirect(new URL('/login', request.url))

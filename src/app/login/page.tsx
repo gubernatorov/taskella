@@ -211,6 +211,13 @@ export default function LoginPage() {
       const envDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
       console.log('💻 No Telegram WebApp detected, checking env dev mode:', envDevMode)
       setIsDevMode(envDevMode)
+      
+      // Для продакшн-режима: если это не Telegram и не dev режим,
+      // показываем сообщение о необходимости открыть через Telegram
+      if (process.env.NODE_ENV === 'production' && !envDevMode) {
+        console.log('🌐 Production mode: showing message to open via Telegram')
+        setError('Пожалуйста, откройте приложение через Telegram бот для использования всех функций.')
+      }
     }
   }, [handleTelegramLogin, authError, router])
 

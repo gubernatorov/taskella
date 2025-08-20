@@ -72,6 +72,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
       
+      // Для продакшн-режима: если нет токена и это не Telegram WebApp,
+      // сразу помечаем как инициализированное, чтобы избежать бесконечного редиректа
+      if (!localStorage.getItem('auth_token') && !isTelegramApp && process.env.NODE_ENV === 'production') {
+        console.log('🌐 Production mode: no token found, marking as initialized to prevent redirect loop')
+        setIsLoading(false)
+        setIsInitialized(true)
+        return
+      }
+      
       // Проверяем сохраненный токен при инициализации
       const savedToken = localStorage.getItem('auth_token')
       console.log('🔍 Saved token exists:', !!savedToken)
