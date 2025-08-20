@@ -108,7 +108,12 @@ export default function LoginPage() {
       
       // Небольшая задержка перед редиректом, чтобы cookie успел установиться
       setTimeout(() => {
-        router.replace('/dashboard')
+        // Для Telegram Mini Apps используем window.location.href вместо router.replace
+        if (isTelegramApp) {
+          window.location.href = '/dashboard'
+        } else {
+          router.replace('/dashboard')
+        }
       }, 200)
     } catch (err) {
       console.error('Login error:', err)
@@ -124,7 +129,7 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [router, isDevMode, isLoading])
+  }, [router, isDevMode, isLoading, isTelegramApp])
 
   useEffect(() => {
     console.log('🔐 Login page useEffect - AuthAttempted:', authAttemptedRef.current)
@@ -137,7 +142,16 @@ export default function LoginPage() {
     // Если есть токен, сразу редиректим на dashboard
     if (token) {
       console.log('✅ Token found, redirecting to dashboard...')
-      router.replace('/dashboard')
+      
+      // Определяем, находимся ли мы в Telegram Mini Apps
+      const isTelegramApp = window.Telegram?.WebApp?.initData
+      
+      // Для Telegram Mini Apps используем window.location.href вместо router.replace
+      if (isTelegramApp) {
+        window.location.href = '/dashboard'
+      } else {
+        router.replace('/dashboard')
+      }
       return
     }
     
@@ -204,7 +218,15 @@ export default function LoginPage() {
       
       // Небольшая задержка перед редиректом
       setTimeout(() => {
-        router.replace('/dashboard')
+        // Определяем, находимся ли мы в Telegram Mini Apps
+        const isTelegramApp = window.Telegram?.WebApp?.initData
+        
+        // Для Telegram Mini Apps используем window.location.href вместо router.replace
+        if (isTelegramApp) {
+          window.location.href = '/dashboard'
+        } else {
+          router.replace('/dashboard')
+        }
       }, 200)
     } catch (err) {
       console.error('Dev login error:', err)
