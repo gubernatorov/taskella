@@ -79,8 +79,14 @@ export default function LoginPage() {
     }
     
     if (!initData) {
-      setError('Telegram WebApp not available')
-      return
+      const envDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+      if (envDevMode) {
+        initData = 'dev_mode_test'
+        console.log('Using env dev mode for Telegram auth')
+      } else {
+        setError('Это приложение должно быть открыто в Telegram. Пожалуйста, откройте приложение через Telegram бот.')
+        return
+      }
     }
 
     setIsLoading(true)
@@ -201,9 +207,10 @@ export default function LoginPage() {
         handleTelegramLogin()
       }, 100)
     } else if (!webApp?.initData) {
-      // Режим разработки - приложение открыто в обычном браузере
-      console.log('💻 Development mode detected (outside Telegram)')
-      setIsDevMode(true)
+      // Проверяем переменную окружения для определения dev режима
+      const envDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+      console.log('💻 No Telegram WebApp detected, checking env dev mode:', envDevMode)
+      setIsDevMode(envDevMode)
     }
   }, [handleTelegramLogin, authError, router])
 
